@@ -1,0 +1,184 @@
+[
+  {
+    "id": "quote_sign_off",
+    "name": "Quote sign off",
+    "durationLow": 1,
+    "durationMedium": 2,
+    "durationHigh": 3,
+    "scopeConditions": [
+      "all"
+    ],
+    "successFactor": "Clear initial brief ensures accurate design and efficient workflow.",
+    "internalNotes": ""
+  },
+  {
+    "id": "detail_design",
+    "name": "Detail Design",
+    "durationLow": 3,
+    "durationMedium": 5,
+    "durationHigh": 7,
+    "scopeConditions": [
+      "custom",
+      "hybrid",
+      "engineered"
+    ],
+    "successFactor": "Finalising details early accelerates CAD and production.",
+    "internalNotes": ""
+  },
+  {
+    "id": "sign_off_of_detail_design",
+    "name": "Sign off of Detail Design",
+    "durationLow": 1,
+    "durationMedium": 2,
+    "durationHigh": 3,
+    "scopeConditions": [
+      "custom",
+      "hybrid",
+      "engineered"
+    ],
+    "successFactor": "Timely client feedback keeps momentum high.",
+    "internalNotes": ""
+  },
+  {
+    "id": "cad_workshop_drawings",
+    "name": "CAD Workshop drawings",
+    "durationLow": 2,
+    "durationMedium": 4,
+    "durationHigh": 6,
+    "scopeConditions": [
+      "custom",
+      "engineered"
+    ],
+    "successFactor": "Accurate drawings ensure smooth production and prevent rework.",
+    "internalNotes": ""
+  },
+  {
+    "id": "sign_off_of_shop_drawings",
+    "name": "Sign off of shop drawings",
+    "durationLow": 1,
+    "durationMedium": 2,
+    "durationHigh": 3,
+    "scopeConditions": [
+      "custom",
+      "engineered"
+    ],
+    "successFactor": "Clear and quick sign-off avoids downstream delays.",
+    "internalNotes": ""
+  },
+  {
+    "id": "procurement_of_materials",
+    "name": "Procurement of materials",
+    "durationLow": 3,
+    "durationMedium": 5,
+    "durationHigh": 7,
+    "scopeConditions": [
+      "custom",
+      "engineered",
+      "hybrid"
+    ],
+    "successFactor": "Early confirmation of finishes and materials speeds production.",
+    "internalNotes": ""
+  },
+  {
+    "id": "cnc_cut",
+    "name": "CNC Cut",
+    "durationLow": 1,
+    "durationMedium": 2,
+    "durationHigh": 3,
+    "scopeConditions": [
+      "custom",
+      "engineered"
+    ],
+    "successFactor": "Accurate materials and CAD files ensure precision cutting.",
+    "internalNotes": ""
+  },
+  {
+    "id": "manual_cut_and_machining",
+    "name": "Manual Cut and Machining",
+    "durationLow": 1,
+    "durationMedium": 2,
+    "durationHigh": 3,
+    "scopeConditions": [
+      "custom",
+      "engineered"
+    ],
+    "successFactor": "Clear specifications allow efficient manual cutting process.",
+    "internalNotes": ""
+  },
+  {
+    "id": "workshop_building_of_components",
+    "name": "Workshop Building of components",
+    "durationLow": 3,
+    "durationMedium": 6,
+    "durationHigh": 10,
+    "scopeConditions": [
+      "custom",
+      "engineered"
+    ],
+    "successFactor": "Stable scope prevents rework and keeps fabrication on schedule.",
+    "internalNotes": "Major fabrication bottleneck."
+  },
+  {
+    "id": "workshop_assemble_pre_build",
+    "name": "Workshop Assemble/Pre Build",
+    "durationLow": 2,
+    "durationMedium": 4,
+    "durationHigh": 6,
+    "scopeConditions": [
+      "custom",
+      "engineered"
+    ],
+    "successFactor": "Complete components ensure smooth assembly.",
+    "internalNotes": ""
+  },
+  {
+    "id": "finishing_2pac_roller_painting",
+    "name": "Finishing - 2 Pac, Roller painting",
+    "durationLow": 2,
+    "durationMedium": 3,
+    "durationHigh": 5,
+    "scopeConditions": [
+      "custom",
+      "engineered"
+    ],
+    "successFactor": "Approved colours and finishes prevent last-minute changes.",
+    "internalNotes": "Paint booth capacity dependent."
+  },
+  {
+    "id": "pack_and_load",
+    "name": "Pack and Load",
+    "durationLow": 1,
+    "durationMedium": 2,
+    "durationHigh": 3,
+    "scopeConditions": [
+      "all"
+    ],
+    "successFactor": "Good labelling and protection ensures successful bump-in.",
+    "internalNotes": ""
+  },
+  {
+    "id": "contingency",
+    "name": "Contingency (5days)",
+    "durationLow": 1,
+    "durationMedium": 3,
+    "durationHigh": 5,
+    "scopeConditions": [
+      "all"
+    ],
+    "successFactor": "Contingency safeguards delivery quality and absorbs unexpected changes.",
+    "internalNotes": ""
+  },
+  {
+    "id": "truck_leave_date",
+    "name": "Truck Leave Date",
+    "durationLow": 0,
+    "durationMedium": 0,
+    "durationHigh": 0,
+    "scopeConditions": [
+      "all"
+    ],
+    "successFactor": "Meeting all prior milestones ensures an on-time dispatch.",
+    "internalNotes": ""
+  }
+]
+

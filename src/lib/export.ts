@@ -19,11 +19,19 @@ export interface ExportData {
   };
   calculation: {
     complexityIndex: number;
-    leadBucket: string;
-    riskLevel: string;
+    bucket: string;
     informationCompleteness: number;
+    leadBucket?: string;
+    riskLevel?: string;
   };
-  phaseDurations: {
+  tasks: Array<{
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    successFactor: string;
+  }>;
+  phaseDurations?: {
     designDays: number;
     clientReviewDays: number;
     approvalBufferDays: number;
@@ -31,7 +39,7 @@ export interface ExportData {
     productionDays: number;
     qaAndPackDays: number;
   };
-  milestones: {
+  milestones?: {
     designStart: string;
     clientReviewStart: string;
     approvalDeadline: string;
@@ -73,10 +81,18 @@ export function prepareExportData(
     },
     calculation: {
       complexityIndex: result.ci,
+      bucket: result.bucket || result.leadBucket || 'unknown',
+      informationCompleteness: result.infoCompleteness,
       leadBucket: result.leadBucket,
       riskLevel: result.riskLevel,
-      informationCompleteness: result.infoCompleteness,
     },
+    tasks: result.tasks.map(task => ({
+      id: task.id,
+      name: task.name,
+      startDate: formatDate(task.startDate),
+      endDate: formatDate(task.endDate),
+      successFactor: task.successFactor,
+    })),
     phaseDurations: result.durations,
     milestones: result.milestones
       ? {
@@ -127,25 +143,42 @@ export function exportToCSV(input: ProjectInput, result: CalculationResult): voi
   // Calculation Summary
   rows.push(['CALCULATION SUMMARY']);
   rows.push(['Complexity Index:', data.calculation.complexityIndex.toString()]);
-  rows.push(['Lead Bucket:', data.calculation.leadBucket]);
-  rows.push(['Risk Level:', data.calculation.riskLevel]);
+  rows.push(['Complexity Bucket:', data.calculation.bucket]);
+  if (data.calculation.leadBucket) {
+    rows.push(['Lead Bucket:', data.calculation.leadBucket]);
+  }
+  if (data.calculation.riskLevel) {
+    rows.push(['Risk Level:', data.calculation.riskLevel]);
+  }
   rows.push(['Information Completeness:', `${(data.calculation.informationCompleteness * 100).toFixed(0)}%`]);
   rows.push([]);
   
-  // Phase Durations
-  rows.push(['PHASE DURATIONS (Days)']);
-  rows.push(['Phase', 'Days']);
-  rows.push(['Design', data.phaseDurations.designDays.toString()]);
-  rows.push(['Client Review', data.phaseDurations.clientReviewDays.toString()]);
-  rows.push(['Approval Buffer', data.phaseDurations.approvalBufferDays.toString()]);
-  rows.push(['Procurement', data.phaseDurations.procurementDays.toString()]);
-  rows.push(['Production', data.phaseDurations.productionDays.toString()]);
-  rows.push(['QA & Pack', data.phaseDurations.qaAndPackDays.toString()]);
-  rows.push([]);
+  // Tasks Schedule
+  if (data.tasks && data.tasks.length > 0) {
+    rows.push(['TASK SCHEDULE']);
+    rows.push(['Task', 'Start Date', 'End Date', 'Success Factor']);
+    data.tasks.forEach(task => {
+      rows.push([task.name, task.startDate, task.endDate, task.successFactor]);
+    });
+    rows.push([]);
+  }
   
-  // Milestones
+  // Phase Durations (legacy, if available)
+  if (data.phaseDurations) {
+    rows.push(['PHASE DURATIONS (Days)']);
+    rows.push(['Phase', 'Days']);
+    rows.push(['Design', data.phaseDurations.designDays.toString()]);
+    rows.push(['Client Review', data.phaseDurations.clientReviewDays.toString()]);
+    rows.push(['Approval Buffer', data.phaseDurations.approvalBufferDays.toString()]);
+    rows.push(['Procurement', data.phaseDurations.procurementDays.toString()]);
+    rows.push(['Production', data.phaseDurations.productionDays.toString()]);
+    rows.push(['QA & Pack', data.phaseDurations.qaAndPackDays.toString()]);
+    rows.push([]);
+  }
+  
+  // Milestones (legacy, if available)
   if (data.milestones) {
-    rows.push(['MILESTONES']);
+    rows.push(['MILESTONES (Legacy)']);
     rows.push(['Milestone', 'Date']);
     rows.push(['Design Start', data.milestones.designStart]);
     rows.push(['Client Review Start', data.milestones.clientReviewStart]);
@@ -285,6 +318,9 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
       font-weight: bold;
       text-transform: uppercase;
     }
+    .badge-low { background: #dcfce7; color: #166534; }
+    .badge-medium { background: #dbeafe; color: #1e40af; }
+    .badge-high { background: #fee2e2; color: #991b1b; }
     .badge-fast_track { background: #dcfce7; color: #166534; }
     .badge-standard { background: #dbeafe; color: #1e40af; }
     .badge-custom { background: #fef3c7; color: #92400e; }
@@ -341,17 +377,27 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
         <div class="card-value">${data.calculation.complexityIndex}</div>
       </div>
       <div class="card">
+        <div class="card-label">Complexity Bucket</div>
+        <div class="card-value">
+          <span class="badge badge-${data.calculation.bucket}">${data.calculation.bucket}</span>
+        </div>
+      </div>
+      ${data.calculation.leadBucket ? `
+      <div class="card">
         <div class="card-label">Lead Bucket</div>
         <div class="card-value">
           <span class="badge badge-${data.calculation.leadBucket}">${data.calculation.leadBucket.replace(/_/g, ' ')}</span>
         </div>
       </div>
+      ` : ''}
+      ${data.calculation.riskLevel ? `
       <div class="card">
         <div class="card-label">Risk Level</div>
         <div class="card-value">
           <span class="badge badge-${data.calculation.riskLevel}">${data.calculation.riskLevel}</span>
         </div>
       </div>
+      ` : ''}
       <div class="card">
         <div class="card-label">Information Completeness</div>
         <div class="card-value">${(data.calculation.informationCompleteness * 100).toFixed(0)}%</div>
@@ -370,8 +416,35 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
     </div>
   </div>
 
+  ${data.tasks && data.tasks.length > 0 ? `
   <div class="section">
-    <h2>Phase Durations</h2>
+    <h2>Task Schedule</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Success Factor</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.tasks.map(task => `
+        <tr>
+          <td>${task.name}</td>
+          <td>${task.startDate}</td>
+          <td>${task.endDate}</td>
+          <td style="font-size: 11px; color: #64748b;">${task.successFactor}</td>
+        </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+  ` : ''}
+
+  ${data.phaseDurations ? `
+  <div class="section">
+    <h2>Phase Durations (Legacy)</h2>
     <table>
       <thead>
         <tr>
@@ -389,10 +462,11 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
       </tbody>
     </table>
   </div>
+  ` : ''}
 
   ${data.milestones ? `
   <div class="section">
-    <h2>Milestones</h2>
+    <h2>Milestones (Legacy)</h2>
     <table>
       <thead>
         <tr>

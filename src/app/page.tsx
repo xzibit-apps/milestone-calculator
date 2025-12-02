@@ -8,10 +8,11 @@ import {
   projectInputSchema,
   type ProjectInputFormData,
 } from '@/lib/validation';
-import type { ProjectInput, CalculationResult } from '@/lib/types';
+import type { ProjectInput, CalculationResult, TaskConfig } from '@/lib/types';
 import Header from '@/components/home/Header';
 import ProjectForm from '@/components/home/ProjectForm';
 import ResultsPanel from '@/components/home/ResultsPanel';
+import tasksData from '@/config/tasks.json';
 
 const defaultValues: ProjectInputFormData = {
   projectName: '',
@@ -58,7 +59,8 @@ export default function Home() {
     setFormInput(input);
 
     setTimeout(() => {
-      const calculation = runCalculation(input);
+      const tasks = tasksData as TaskConfig[];
+      const calculation = runCalculation(input, tasks);
       console.log(input);
       setResult(calculation);
       setIsCalculating(false);

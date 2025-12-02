@@ -1,6 +1,10 @@
 // components/home/ProjectForm.tsx
 import { useRef } from 'react';
-import { UseFormReturn, FieldError, UseFormRegisterReturn } from 'react-hook-form';
+import {
+  UseFormReturn,
+  FieldError,
+  UseFormRegisterReturn,
+} from 'react-hook-form';
 import { Target, Calendar, Zap, AlertCircle } from 'lucide-react';
 import { MESSAGES } from '@/lib/constants';
 import type { ProjectInputFormData } from '@/lib/validation';
@@ -17,7 +21,17 @@ interface SelectOption {
 }
 
 // Move components outside to prevent re-creation on every render
-const FormInput = ({ id, label, type = 'text', placeholder, register, error, helpText, icon, required = false }: {
+const FormInput = ({
+  id,
+  label,
+  type = 'text',
+  placeholder,
+  register,
+  error,
+  helpText,
+  icon,
+  required = false,
+}: {
   id: string;
   label: string;
   type?: 'text' | 'date' | 'email' | 'number';
@@ -30,7 +44,7 @@ const FormInput = ({ id, label, type = 'text', placeholder, register, error, hel
 }) => {
   const isDateInput = type === 'date';
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const handleDateInputClick = () => {
     if (isDateInput && inputRef.current) {
       // showPicker must be called directly from user gesture, not in setTimeout
@@ -47,13 +61,16 @@ const FormInput = ({ id, label, type = 'text', placeholder, register, error, hel
       }
     }
   };
-  
+
   // Merge refs properly
   const { ref, ...registerRest } = register;
-  
+
   return (
     <div>
-      <label htmlFor={id} className="block text-xs text-[#94a3b8] mb-2 uppercase tracking-wide">
+      <label
+        htmlFor={id}
+        className="block text-xs text-[#94a3b8] mb-2 uppercase tracking-wide"
+      >
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       <div className="relative">
@@ -88,7 +105,9 @@ const FormInput = ({ id, label, type = 'text', placeholder, register, error, hel
               id={id}
               type={type}
               {...register}
-              className={`w-full ${icon ? 'pl-10 sm:pl-12' : 'pl-3 sm:pl-4'} pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base bg-[#0b1a2e]/90 backdrop-blur-md border rounded-lg sm:rounded-xl text-[#e2e8f0] placeholder:text-[#64748b] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/50 focus:border-[#60a5fa] focus:bg-[#0b1a2e] focus:shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:border-[#60a5fa]/50 transition-all duration-300 ${
+              className={`w-full ${
+                icon ? 'pl-10 sm:pl-12' : 'pl-3 sm:pl-4'
+              } pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base bg-[#0b1a2e]/90 backdrop-blur-md border rounded-lg sm:rounded-xl text-[#e2e8f0] placeholder:text-[#64748b] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/50 focus:border-[#60a5fa] focus:bg-[#0b1a2e] focus:shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:border-[#60a5fa]/50 transition-all duration-300 ${
                 error ? 'border-red-500/50' : 'border-[#203049]/80'
               }`}
               placeholder={placeholder}
@@ -109,7 +128,14 @@ const FormInput = ({ id, label, type = 'text', placeholder, register, error, hel
   );
 };
 
-const FormSelect = ({ id, label, register, error, options, required = false }: {
+const FormSelect = ({
+  id,
+  label,
+  register,
+  error,
+  options,
+  required = false,
+}: {
   id: string;
   label: string;
   register: UseFormRegisterReturn;
@@ -118,16 +144,19 @@ const FormSelect = ({ id, label, register, error, options, required = false }: {
   required?: boolean;
 }) => (
   <div>
-    <label htmlFor={id} className="block text-xs text-[#94a3b8] mb-2 uppercase tracking-wide">
+    <label
+      htmlFor={id}
+      className="block text-xs text-[#94a3b8] mb-2 uppercase tracking-wide"
+    >
       {label} {required && <span className="text-red-400">*</span>}
     </label>
-          <select
-            id={id}
-            {...register}
-            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-[#0b1a2e]/90 backdrop-blur-md border rounded-lg sm:rounded-xl text-[#e2e8f0] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/50 focus:border-[#60a5fa] focus:bg-[#0b1a2e] focus:shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:border-[#60a5fa]/50 transition-all duration-300 cursor-pointer ${
-              error ? 'border-red-500/50' : 'border-[#203049]/80'
-            }`}
-          >
+    <select
+      id={id}
+      {...register}
+      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-[#0b1a2e]/90 backdrop-blur-md border rounded-lg sm:rounded-xl text-[#e2e8f0] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/50 focus:border-[#60a5fa] focus:bg-[#0b1a2e] focus:shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:border-[#60a5fa]/50 transition-all duration-300 cursor-pointer ${
+        error ? 'border-red-500/50' : 'border-[#203049]/80'
+      }`}
+    >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
@@ -143,7 +172,15 @@ const FormSelect = ({ id, label, register, error, options, required = false }: {
   </div>
 );
 
-const FormCheckbox = ({ id, label, register }: { id: string; label: string; register: UseFormRegisterReturn }) => (
+const FormCheckbox = ({
+  id,
+  label,
+  register,
+}: {
+  id: string;
+  label: string;
+  register: UseFormRegisterReturn;
+}) => (
   <label className="flex items-center cursor-pointer group">
     <input
       id={id}
@@ -157,23 +194,36 @@ const FormCheckbox = ({ id, label, register }: { id: string; label: string; regi
   </label>
 );
 
-export default function ProjectForm({ form, onSubmit, isCalculating }: ProjectFormProps) {
-  const { register, handleSubmit, formState: { errors } } = form;
+export default function ProjectForm({
+  form,
+  onSubmit,
+  isCalculating,
+}: ProjectFormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
 
   return (
     <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-[#203049]/60 rounded-2xl sm:rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_48px_rgba(96,165,250,0.15)] transition-all duration-700 relative overflow-hidden group">
       <div className="absolute inset-0 bg-linear-to-br from-[#60a5fa]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-      
+
       <div className="p-4 sm:p-6 lg:p-8 border-b border-[#203049]/50 bg-linear-to-r from-[#0f172a]/95 to-[#1e293b]/95 backdrop-blur-sm relative z-10">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="bg-[#60a5fa]/20 rounded-lg p-1.5 sm:p-2 border border-[#60a5fa]/30">
             <Target className="h-4 w-4 sm:h-5 sm:w-5 text-[#60a5fa]" />
           </div>
-          <h2 className="text-base sm:text-lg font-bold text-white">{MESSAGES.INPUTS}</h2>
+          <h2 className="text-base sm:text-lg font-bold text-white">
+            {MESSAGES.INPUTS}
+          </h2>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 relative z-10">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 relative z-10"
+      >
         <FormInput
           id="projectName"
           label={MESSAGES.PROJECT_NAME}
@@ -271,7 +321,9 @@ export default function ProjectForm({ form, onSubmit, isCalculating }: ProjectFo
         />
 
         <div className="pt-4 border-t border-[#203049]">
-          <h3 className="text-xs text-[#94a3b8] mb-3 uppercase tracking-wide">{MESSAGES.OPTIONAL_FLAGS}</h3>
+          <h3 className="text-xs text-[#94a3b8] mb-3 uppercase tracking-wide">
+            {MESSAGES.OPTIONAL_FLAGS}
+          </h3>
           <div className="space-y-2 sm:space-y-3">
             <FormCheckbox
               id="engineeringRequired"
@@ -287,7 +339,9 @@ export default function ProjectForm({ form, onSubmit, isCalculating }: ProjectFo
         </div>
 
         <div className="pt-4 border-t border-[#203049]">
-          <h3 className="text-xs text-[#94a3b8] mb-3 uppercase tracking-wide">{MESSAGES.INFORMATION_GATES}</h3>
+          <h3 className="text-xs text-[#94a3b8] mb-3 uppercase tracking-wide">
+            {MESSAGES.INFORMATION_GATES}
+          </h3>
           <div className="space-y-2 sm:space-y-3">
             <FormCheckbox
               id="finalDrawings"
@@ -322,11 +376,11 @@ export default function ProjectForm({ form, onSubmit, isCalculating }: ProjectFo
           </div>
         </div>
 
-              <button
-                type="submit"
-                disabled={isCalculating}
-                className="w-full bg-linear-to-r from-[#60a5fa] via-[#3b82f6] to-[#2563eb] hover:from-[#3b82f6] hover:via-[#2563eb] hover:to-[#1d4ed8] disabled:from-[#475569] disabled:via-[#334155] disabled:to-[#1e293b] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 shadow-[0_4px_20px_rgba(96,165,250,0.4)] hover:shadow-[0_6px_30px_rgba(96,165,250,0.6)] hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-none relative overflow-hidden group mt-6 sm:mt-8"
-              >
+        <button
+          type="submit"
+          disabled={isCalculating}
+          className="w-full bg-linear-to-r from-[#60a5fa] via-[#3b82f6] to-[#2563eb] hover:from-[#3b82f6] hover:via-[#2563eb] hover:to-[#1d4ed8] disabled:from-[#475569] disabled:via-[#334155] disabled:to-[#1e293b] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 shadow-[0_4px_20px_rgba(96,165,250,0.4)] hover:shadow-[0_6px_30px_rgba(96,165,250,0.6)] hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-none relative overflow-hidden group mt-6 sm:mt-8"
+        >
           <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {isCalculating ? (
             <span className="flex items-center justify-center gap-2.5 relative z-10">
@@ -344,4 +398,3 @@ export default function ProjectForm({ form, onSubmit, isCalculating }: ProjectFo
     </div>
   );
 }
-

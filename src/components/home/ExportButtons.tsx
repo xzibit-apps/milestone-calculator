@@ -18,7 +18,9 @@ export default function ExportButtons({ input, result }: ExportButtonsProps) {
       >
         <div className="absolute inset-0 bg-[#60a5fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <FileJson className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
-        <span className="hidden sm:inline text-xs sm:text-sm font-semibold relative z-10">JSON</span>
+        <span className="hidden sm:inline text-xs sm:text-sm font-semibold relative z-10">
+          JSON
+        </span>
       </button>
       <button
         onClick={() => exportToCSV(input, result)}
@@ -27,7 +29,9 @@ export default function ExportButtons({ input, result }: ExportButtonsProps) {
       >
         <div className="absolute inset-0 bg-[#60a5fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <FileSpreadsheet className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
-        <span className="hidden sm:inline text-xs sm:text-sm font-semibold relative z-10">CSV</span>
+        <span className="hidden sm:inline text-xs sm:text-sm font-semibold relative z-10">
+          CSV
+        </span>
       </button>
       <button
         onClick={() => exportToPDF(input, result)}
@@ -36,9 +40,10 @@ export default function ExportButtons({ input, result }: ExportButtonsProps) {
       >
         <div className="absolute inset-0 bg-[#60a5fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <FileType className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
-        <span className="hidden sm:inline text-xs sm:text-sm font-semibold relative z-10">PDF</span>
+        <span className="hidden sm:inline text-xs sm:text-sm font-semibold relative z-10">
+          PDF
+        </span>
       </button>
     </div>
   );
 }
-

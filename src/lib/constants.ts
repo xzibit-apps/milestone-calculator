@@ -64,11 +64,16 @@ export const MESSAGES = {
   RISK_HIGH: 'High Risk',
   RISK_UNKNOWN: 'Unknown',
   
-  // Lead Buckets
+  // Lead Buckets (legacy)
   BUCKET_FAST_TRACK: 'Fast Track',
   BUCKET_STANDARD: 'Standard',
   BUCKET_CUSTOM: 'Custom',
   BUCKET_HIGH_RISK: 'High Risk',
+  
+  // Complexity Buckets (v2)
+  BUCKET_LOW: 'Low',
+  BUCKET_MEDIUM: 'Medium',
+  BUCKET_HIGH: 'High',
   
   // Phase Labels
   PHASE_DESIGN: 'Design',

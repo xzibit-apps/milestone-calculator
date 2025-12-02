@@ -1,20 +1,25 @@
 // lib/calculator.ts
-import {
-  AvComplexity,
-  BriefClarity,
-  BuildType,
-  CalculationResult,
-  FabricationIntensity,
-  InfoGates,
-  LeadBucket,
-  Milestones,
-  PhaseDurations,
-  ProjectInput,
-  RiskLevel,
-  StandSize,
-} from "./types";
+// Updated logic for Production Milestone Calculator v2
+// - Uses Truck Leave Date as anchor
+// - Uses task config loaded from config/tasks.json
+// - Schedules tasks sequentially backwards (parallel/graph logic can be phase 2)
 
-// scoring
+import type {
+  BuildType,
+  StandSize,
+  AvComplexity,
+  FabricationIntensity,
+  BriefClarity,
+  ComplexityBucket,
+  ProjectInput,
+  TaskConfig,
+  ScheduledTask,
+  CalculationResult,
+  InfoGates,
+} from './types';
+
+// --- Complexity scoring tables ---
+
 const BUILD_TYPE_SCORES: Record<BuildType, number> = {
   hire: 1,
   hybrid: 3,
@@ -46,15 +51,7 @@ const BRIEF_CLARITY_SCORES: Record<BriefClarity, number> = {
   vague: 5,
 };
 
-// fallback durations
-const DEFAULT_DURATIONS: Record<LeadBucket, PhaseDurations> = {
-  fast_track: { designDays:3, clientReviewDays:3, approvalBufferDays:2, procurementDays:5, productionDays:5, qaAndPackDays:2 },
-  standard:   { designDays:5, clientReviewDays:5, approvalBufferDays:3, procurementDays:7, productionDays:10, qaAndPackDays:2 },
-  custom:     { designDays:7, clientReviewDays:7, approvalBufferDays:3, procurementDays:10, productionDays:15, qaAndPackDays:3 },
-  high_risk:  { designDays:10, clientReviewDays:10, approvalBufferDays:5, procurementDays:15, productionDays:20, qaAndPackDays:3 },
-};
-
-export function calculateComplexityIndex(input: ProjectInput): number {
+export function calculateCI(input: ProjectInput): number {
   let score = 0;
   score += BUILD_TYPE_SCORES[input.buildType];
   score += STAND_SIZE_SCORES[input.standSize];
@@ -66,83 +63,149 @@ export function calculateComplexityIndex(input: ProjectInput): number {
   return score;
 }
 
-export function getLeadBucket(ci: number): LeadBucket {
-  if (ci <= 8) return "fast_track";
-  if (ci <= 15) return "standard";
-  if (ci <= 22) return "custom";
-  return "high_risk";
+export function mapBucket(ci: number): ComplexityBucket {
+  if (ci <= 8) return "low";
+  if (ci <= 15) return "medium";
+  return "high";
 }
 
-export function getPhaseDurations(bucket: LeadBucket, brief: BriefClarity, eng: boolean): PhaseDurations {
-  const base = DEFAULT_DURATIONS[bucket];
-  let { designDays, clientReviewDays } = base;
-  const { approvalBufferDays, procurementDays, productionDays, qaAndPackDays } = base;
+// --- Info completeness ---
 
-  if (brief === "some_unknowns") { designDays+=2; clientReviewDays+=2; }
-  if (brief === "vague") { designDays+=4; clientReviewDays+=4; }
-  if (eng) { designDays+=3; clientReviewDays+=2; }
-
-  return { designDays, clientReviewDays, approvalBufferDays, procurementDays, productionDays, qaAndPackDays };
+export function calculateInfoCompleteness(gates: InfoGates): number {
+  const total = Object.keys(gates).length;
+  const passed = Object.values(gates).filter(Boolean).length;
+  return total === 0 ? 0 : passed / total;
 }
 
-// working days add (Monday-Friday only)
+// --- Working-days helper (Mon–Fri only) ---
+
 export function addWorkingDays(date: Date, days: number): Date {
-  const r = new Date(date);
+  const result = new Date(date);
   const step = days >= 0 ? 1 : -1;
   let remaining = Math.abs(days);
   while (remaining > 0) {
-    r.setDate(r.getDate() + step);
-    const d = r.getDay();
-    if (d !== 0 && d !== 6) remaining--;
+    result.setDate(result.getDate() + step);
+    const dow = result.getDay(); // 0=Sun,6=Sat
+    if (dow !== 0 && dow !== 6) {
+      remaining -= 1;
+    }
   }
-  return r;
+  return result;
 }
 
-export function calculateMilestones(truckLeave: Date, d: PhaseDurations): Milestones {
-  const dispatch = addWorkingDays(truckLeave, -1);
-  const productionComplete = addWorkingDays(dispatch, -d.qaAndPackDays);
-  const productionStart = addWorkingDays(productionComplete, -d.productionDays);
-  const procurementStart = addWorkingDays(productionStart, -d.procurementDays);
-  const approvalDeadline = addWorkingDays(procurementStart, -d.approvalBufferDays);
-  const clientReviewStart = addWorkingDays(approvalDeadline, -d.clientReviewDays);
-  const designStart = addWorkingDays(clientReviewStart, -d.designDays);
-  return { designStart, clientReviewStart, approvalDeadline, procurementStart, productionStart, productionComplete, dispatch, truckLeaveDate: truckLeave };
+// Count working days between two dates (inclusive)
+export function countWorkingDays(startDate: Date, endDate: Date): number {
+  let count = 0;
+  const current = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // Normalize to start of day
+  current.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  
+  while (current <= end) {
+    const dow = current.getDay();
+    if (dow !== 0 && dow !== 6) { // Monday to Friday
+      count += 1;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return count;
 }
 
-export function calculateInfoCompleteness(gates: InfoGates): number {
-  const t = Object.keys(gates).length;
-  const p = Object.values(gates).filter(Boolean).length;
-  return t === 0 ? 0 : p / t;
+// --- Task selection and scheduling ---
+
+export function selectTasksForProject(
+  allTasks: TaskConfig[],
+  input: ProjectInput
+): TaskConfig[] {
+  const tags: string[] = [];
+  tags.push(input.buildType);
+  if (input.engineeringRequired) tags.push("engineering");
+  if (input.avComplexity === "high") tags.push("av_heavy");
+
+  return allTasks.filter((t) => {
+    if (!t.scopeConditions || t.scopeConditions.length === 0) return true;
+    if (t.scopeConditions.includes("all")) return true;
+    return t.scopeConditions.some((cond) => tags.includes(cond));
+  });
 }
 
-export function calculateRiskLevel(m: Milestones | null): RiskLevel {
-  if (!m) return "unknown";
-  const today = new Date(); today.setHours(0,0,0,0);
-  if (m.designStart < today) return "high";
-  if (m.clientReviewStart < today) return "tight";
-  return "ok";
+export function getDurationForBucket(task: TaskConfig, bucket: ComplexityBucket): number {
+  switch (bucket) {
+    case "low":
+      return task.durationLow;
+    case "medium":
+      return task.durationMedium;
+    case "high":
+      return task.durationHigh;
+  }
 }
 
-export function runCalculation(input: ProjectInput): CalculationResult {
-  const ci = calculateComplexityIndex(input);
-  const leadBucket = getLeadBucket(ci);
-  const durations = getPhaseDurations(leadBucket, input.briefClarity, input.engineeringRequired);
+// Sequential backwards scheduling using task order
+export function scheduleSequentialBackwards(
+  truckLeaveDate: Date,
+  tasks: TaskConfig[],
+  bucket: ComplexityBucket
+): ScheduledTask[] {
+  const scheduled: ScheduledTask[] = [];
+  let currentEnd = new Date(truckLeaveDate);
 
-  const truckLeave = input.truckLeaveDate ? new Date(input.truckLeaveDate+"T00:00:00") : null;
-  const milestones = truckLeave ? calculateMilestones(truckLeave, durations) : null;
+  // assume tasks[] is in logical order from first -> last
+  for (let i = tasks.length - 1; i >= 0; i--) {
+    const task = tasks[i];
+    const duration = getDurationForBucket(task, bucket);
+    const start =
+      duration > 0 ? addWorkingDays(currentEnd, -duration) : new Date(currentEnd);
+    const end = new Date(currentEnd);
+    scheduled.unshift({
+      ...task,
+      startDate: start,
+      endDate: end,
+    });
+    currentEnd = start;
+  }
+
+  return scheduled;
+}
+
+// Helper to format dates for UI
+export function formatDate(date: Date | null | undefined): string {
+  if (!date || isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+// Main entrypoint
+export function runCalculation(
+  input: ProjectInput,
+  allTasks: TaskConfig[]
+): CalculationResult {
+  const ci = calculateCI(input);
+  const bucket = mapBucket(ci);
+  const infoCompleteness = calculateInfoCompleteness(input.infoGates);
+
+  const truckLeave =
+    input.truckLeaveDate && input.truckLeaveDate !== ""
+      ? new Date(input.truckLeaveDate + "T00:00:00")
+      : null;
+
+  const scopedTasks = selectTasksForProject(allTasks, input);
+  let scheduled: ScheduledTask[] = [];
+
+  if (truckLeave && !isNaN(truckLeave.getTime())) {
+    scheduled = scheduleSequentialBackwards(truckLeave, scopedTasks, bucket);
+  }
 
   return {
     ci,
-    leadBucket,
-    durations,
-    milestones,
-    riskLevel: calculateRiskLevel(milestones),
-    infoCompleteness: calculateInfoCompleteness(input.infoGates),
+    bucket,
+    tasks: scheduled,
+    clientMilestones: scheduled,
+    infoCompleteness,
   };
 }
-
-export function formatDate(date: Date | null): string {
-  if (!date || isNaN(date.getTime())) return "-";
-  return date.toISOString().split("T")[0];
-}
-
