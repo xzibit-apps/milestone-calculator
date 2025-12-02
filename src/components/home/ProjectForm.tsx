@@ -379,7 +379,7 @@ export default function ProjectForm({
         <button
           type="submit"
           disabled={isCalculating}
-          className="w-full bg-linear-to-r from-[#60a5fa] via-[#3b82f6] to-[#2563eb] hover:from-[#3b82f6] hover:via-[#2563eb] hover:to-[#1d4ed8] disabled:from-[#475569] disabled:via-[#334155] disabled:to-[#1e293b] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 shadow-[0_4px_20px_rgba(96,165,250,0.4)] hover:shadow-[0_6px_30px_rgba(96,165,250,0.6)] hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-none relative overflow-hidden group mt-6 sm:mt-8"
+          className="w-full bg-linear-to-r from-[#60a5fa] via-[#3b82f6] to-[#2563eb] hover:from-[#3b82f6] hover:via-[#2563eb] hover:to-[#1d4ed8] disabled:from-[#475569] disabled:via-[#334155] disabled:to-[#1e293b] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 shadow-[0_4px_20px_rgba(96,165,250,0.4)] hover:shadow-[0_6px_30px_rgba(96,165,250,0.6)] hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-none relative overflow-hidden group mt-6 sm:mt-8 cursor-pointer"
         >
           <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {isCalculating ? (
