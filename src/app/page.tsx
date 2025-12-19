@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { runCalculation } from '@/lib/calculator';
+import { runCalculation, type CIConfig } from '@/lib/calculator';
 import {
   projectInputSchema,
   type ProjectInputFormData,
 } from '@/lib/validation';
+import { MESSAGES, TIMING } from '@/lib/constants';
 import type { ProjectInput, CalculationResult, TaskConfig } from '@/lib/types';
 import Header from '@/components/home/Header';
 import ProjectForm from '@/components/home/ProjectForm';
 import ResultsPanel from '@/components/home/ResultsPanel';
 import tasksData from '@/config/tasks.json';
+import ciConfigData from '@/config/ciConfig.json';
+import labelsData from '@/config/labels.json';
 
 const defaultValues: ProjectInputFormData = {
   projectName: '',
@@ -35,10 +38,18 @@ const defaultValues: ProjectInputFormData = {
   },
 };
 
+interface LabelsConfig {
+  infoGates: Record<string, string>;
+  optionalFlags: Record<string, string>;
+}
+
 export default function Home() {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [formInput, setFormInput] = useState<ProjectInput | null>(null);
+  const [ciConfig, setCiConfig] = useState<CIConfig | null>(null);
+  const [labels, setLabels] = useState<LabelsConfig | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const form = useForm<ProjectInputFormData>({
     resolver: zodResolver(projectInputSchema),
@@ -48,8 +59,33 @@ export default function Home() {
 
   const watchedValues = form.watch();
 
-  const onSubmit = (data: ProjectInputFormData) => {
+  // Load CI config and labels on mount
+  useEffect(() => {
+    try {
+      const config = ciConfigData as CIConfig;
+      setCiConfig(config);
+    } catch (error) {
+      console.error('Failed to load CI config:', error);
+    }
+    
+    try {
+      const labelsConfig = labelsData as LabelsConfig;
+      setLabels(labelsConfig);
+    } catch (error) {
+      console.error('Failed to load labels:', error);
+    }
+  }, []);
+
+  const onSubmit = async (data: ProjectInputFormData) => {
+    if (!ciConfig) {
+      setErrorMessage(MESSAGES.ERROR_CONFIG_NOT_LOADED);
+      setTimeout(() => setErrorMessage(null), TIMING.MESSAGE_DISPLAY_DURATION);
+      return;
+    }
+
     setIsCalculating(true);
+    setErrorMessage(null);
+    
     // Convert form data to ProjectInput format
     const input: ProjectInput = {
       ...data,
@@ -58,13 +94,36 @@ export default function Home() {
 
     setFormInput(input);
 
-    setTimeout(() => {
+    // Small delay for smooth UX, then calculate
+    await new Promise(resolve => setTimeout(resolve, TIMING.CALCULATION_DELAY));
+
+    try {
       const tasks = tasksData as TaskConfig[];
-      const calculation = runCalculation(input, tasks);
-      console.log(input);
+      const calculation = runCalculation(input, tasks, ciConfig);
       setResult(calculation);
+      setErrorMessage(null);
+    } catch (error) {
+      console.error('Calculation error:', error);
+      
+      // Show user-friendly error message
+      let errorMsg: string = MESSAGES.ERROR_CALCULATION_FAILED;
+      if (error instanceof Error) {
+        if (error.message.includes('Truck leave date cannot be in the past')) {
+          errorMsg = MESSAGES.ERROR_INVALID_TRUCK_DATE;
+        } else {
+          // Include error details for debugging (user-friendly message)
+          errorMsg = `${MESSAGES.ERROR_CALCULATION_FAILED} Details: ${error.message}`;
+        }
+      }
+      
+      setErrorMessage(errorMsg);
+      setResult(null);
+      
+      // Auto-hide error message after duration
+      setTimeout(() => setErrorMessage(null), TIMING.MESSAGE_DISPLAY_DURATION);
+    } finally {
       setIsCalculating(false);
-    }, 300);
+    }
   };
 
   // Get current input from form state for export buttons
@@ -90,11 +149,33 @@ export default function Home() {
       <div className="relative max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8">
         <Header />
 
+        {/* Error Message Display */}
+        {errorMessage && (
+          <div className="mb-4 sm:mb-6 bg-red-500/20 border border-red-500/50 rounded-xl p-4 text-red-400 flex items-center gap-3 animate-fade-in">
+            <div className="bg-red-500/20 rounded-lg p-2 shrink-0">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-sm sm:text-base font-medium">{errorMessage}</p>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="ml-auto text-red-400 hover:text-red-300 transition-colors"
+              aria-label="Close error message"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
           <ProjectForm
             form={form}
             onSubmit={onSubmit}
             isCalculating={isCalculating}
+            labels={labels}
           />
 
           <ResultsPanel result={result} input={currentInput} />

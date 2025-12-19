@@ -1,62 +1,43 @@
 // lib/export.ts
-import type { ProjectInput, CalculationResult } from './types';
-import { formatDate } from './calculator';
+// Export functions for Production Milestone Calculator v2
+// Matches specification requirements from section 10
 
+import type { ProjectInput, CalculationResult } from './types';
+
+// Export data structure matching v2 specification
 export interface ExportData {
-  project: {
-    projectName: string;
-    clientName: string;
-    truckLeaveDate: string | null;
-  };
-  inputs: {
-    buildType: string;
-    standSize: string;
-    avComplexity: string;
-    fabricationIntensity: string;
-    briefClarity: string;
-    engineeringRequired: boolean;
-    longLeadItems: boolean;
-  };
-  calculation: {
-    complexityIndex: number;
-    bucket: string;
-    informationCompleteness: number;
-    leadBucket?: string;
-    riskLevel?: string;
-  };
+  // Top-level fields (required by spec)
+  projectName: string;
+  clientName: string;
+  truckLeaveDate: string | null;
+  ci: number;
+  bucket: string;
+  infoCompleteness: number;
+  
+  // Tasks (internal view) - required by spec
   tasks: Array<{
     id: string;
     name: string;
-    startDate: string;
-    endDate: string;
+    startDate: string | null; // ISO string or null
+    endDate: string | null; // ISO string or null
+    duration: number;
     successFactor: string;
   }>;
-  phaseDurations?: {
-    designDays: number;
-    clientReviewDays: number;
-    approvalBufferDays: number;
-    procurementDays: number;
-    productionDays: number;
-    qaAndPackDays: number;
-  };
-  milestones?: {
-    designStart: string;
-    clientReviewStart: string;
-    approvalDeadline: string;
-    procurementStart: string;
-    productionStart: string;
-    productionComplete: string;
-    dispatch: string;
-    truckLeaveDate: string;
-  } | null;
-  informationGates: {
-    finalDrawings: boolean;
-    finishesConfirmed: boolean;
-    brandingAssets: boolean;
-    avInputsConfirmed: boolean;
-    engineeringSignedOff: boolean;
-    clientScopeApproved: boolean;
-  };
+  
+  // clientMilestones - mirrors tasks for v2 (required by spec)
+  clientMilestones: Array<{
+    id: string;
+    name: string;
+    startDate: string | null;
+    endDate: string | null;
+    duration: number;
+    successFactor: string;
+  }>;
+  
+  // ProjectInput object for convenience (optional per spec)
+  projectInput?: ProjectInput;
+  
+  // Metadata
   exportedAt: string;
 }
 
@@ -64,49 +45,35 @@ export function prepareExportData(
   input: ProjectInput,
   result: CalculationResult
 ): ExportData {
+  // Format tasks for export
+  const formatTask = (task: typeof result.tasks[0]) => ({
+    id: task.id,
+    name: task.name,
+    startDate: task.startDate ? task.startDate.toISOString() : null,
+    endDate: task.endDate ? task.endDate.toISOString() : null,
+    duration: task.duration,
+    successFactor: task.successFactor,
+  });
+
   return {
-    project: {
-      projectName: input.projectName || 'Untitled Project',
-      clientName: input.clientName || 'Unknown Client',
-      truckLeaveDate: input.truckLeaveDate,
-    },
-    inputs: {
-      buildType: input.buildType,
-      standSize: input.standSize,
-      avComplexity: input.avComplexity,
-      fabricationIntensity: input.fabricationIntensity,
-      briefClarity: input.briefClarity,
-      engineeringRequired: input.engineeringRequired,
-      longLeadItems: input.longLeadItems,
-    },
-    calculation: {
-      complexityIndex: result.ci,
-      bucket: result.bucket || result.leadBucket || 'unknown',
-      informationCompleteness: result.infoCompleteness,
-      leadBucket: result.leadBucket,
-      riskLevel: result.riskLevel,
-    },
-    tasks: result.tasks.map(task => ({
-      id: task.id,
-      name: task.name,
-      startDate: formatDate(task.startDate),
-      endDate: formatDate(task.endDate),
-      successFactor: task.successFactor,
-    })),
-    phaseDurations: result.durations,
-    milestones: result.milestones
-      ? {
-          designStart: formatDate(result.milestones.designStart),
-          clientReviewStart: formatDate(result.milestones.clientReviewStart),
-          approvalDeadline: formatDate(result.milestones.approvalDeadline),
-          procurementStart: formatDate(result.milestones.procurementStart),
-          productionStart: formatDate(result.milestones.productionStart),
-          productionComplete: formatDate(result.milestones.productionComplete),
-          dispatch: formatDate(result.milestones.dispatch),
-          truckLeaveDate: formatDate(result.milestones.truckLeaveDate),
-        }
-      : null,
-    informationGates: input.infoGates,
+    // Top-level fields (required by spec)
+    projectName: input.projectName || 'Untitled Project',
+    clientName: input.clientName || 'Unknown Client',
+    truckLeaveDate: input.truckLeaveDate,
+    ci: result.ci,
+    bucket: result.bucket,
+    infoCompleteness: result.infoCompleteness,
+    
+    // Tasks (internal view)
+    tasks: result.tasks.map(formatTask),
+    
+    // clientMilestones (mirrors tasks for v2)
+    clientMilestones: result.clientMilestones.map(formatTask),
+    
+    // ProjectInput for convenience
+    projectInput: input,
+    
+    // Metadata
     exportedAt: new Date().toISOString(),
   };
 }
@@ -118,7 +85,8 @@ export function exportToJSON(input: ProjectInput, result: CalculationResult): vo
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${data.project.projectName.replace(/[^a-z0-9]/gi, '_')}_milestone_calculation.json`;
+  const projectName = data.projectName.replace(/[^a-z0-9]/gi, '_') || 'Untitled_Project';
+  a.download = `${projectName}_milestone_calculation.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -127,79 +95,93 @@ export function exportToJSON(input: ProjectInput, result: CalculationResult): vo
 
 export function exportToCSV(input: ProjectInput, result: CalculationResult): void {
   const data = prepareExportData(input, result);
-  const projectName = data.project.projectName.replace(/[^a-z0-9]/gi, '_') || 'Untitled_Project';
+  const projectName = data.projectName.replace(/[^a-z0-9]/gi, '_') || 'Untitled_Project';
   
-  // Create CSV content
+  // Create CSV content - flattened as per spec
   const rows: string[][] = [];
   
-  // Header
+  // Header section
   rows.push(['Production Milestone Calculator - Export']);
-  rows.push(['Project:', data.project.projectName]);
-  rows.push(['Client:', data.project.clientName]);
-  rows.push(['Truck Leave Date:', data.project.truckLeaveDate || 'Not Set']);
-  rows.push(['Exported At:', new Date().toLocaleString()]);
   rows.push([]);
   
-  // Calculation Summary
-  rows.push(['CALCULATION SUMMARY']);
-  rows.push(['Complexity Index:', data.calculation.complexityIndex.toString()]);
-  rows.push(['Complexity Bucket:', data.calculation.bucket]);
-  if (data.calculation.leadBucket) {
-    rows.push(['Lead Bucket:', data.calculation.leadBucket]);
-  }
-  if (data.calculation.riskLevel) {
-    rows.push(['Risk Level:', data.calculation.riskLevel]);
-  }
-  rows.push(['Information Completeness:', `${(data.calculation.informationCompleteness * 100).toFixed(0)}%`]);
+  // Top-level fields (flattened)
+  rows.push(['Project Name', data.projectName]);
+  rows.push(['Client Name', data.clientName]);
+  rows.push(['Truck Leave Date', data.truckLeaveDate || 'Not Set']);
+  rows.push(['Complexity Index (CI)', data.ci.toString()]);
+  rows.push(['Complexity Bucket', data.bucket]);
+  rows.push(['Information Completeness', `${(data.infoCompleteness * 100).toFixed(0)}%`]);
+  rows.push(['Exported At', new Date(data.exportedAt).toLocaleString()]);
   rows.push([]);
   
-  // Tasks Schedule
+  // Tasks Schedule (flattened as columns)
   if (data.tasks && data.tasks.length > 0) {
     rows.push(['TASK SCHEDULE']);
-    rows.push(['Task', 'Start Date', 'End Date', 'Success Factor']);
+    rows.push(['Task ID', 'Task Name', 'Start Date', 'End Date', 'Duration (Days)', 'Success Factor']);
     data.tasks.forEach(task => {
-      rows.push([task.name, task.startDate, task.endDate, task.successFactor]);
+      const startDate = task.startDate 
+        ? new Date(task.startDate).toLocaleDateString() 
+        : 'TBC';
+      const endDate = task.endDate 
+        ? new Date(task.endDate).toLocaleDateString() 
+        : 'TBC';
+      rows.push([
+        task.id,
+        task.name,
+        startDate,
+        endDate,
+        task.duration.toString(),
+        task.successFactor,
+      ]);
     });
     rows.push([]);
   }
   
-  // Phase Durations (legacy, if available)
-  if (data.phaseDurations) {
-    rows.push(['PHASE DURATIONS (Days)']);
-    rows.push(['Phase', 'Days']);
-    rows.push(['Design', data.phaseDurations.designDays.toString()]);
-    rows.push(['Client Review', data.phaseDurations.clientReviewDays.toString()]);
-    rows.push(['Approval Buffer', data.phaseDurations.approvalBufferDays.toString()]);
-    rows.push(['Procurement', data.phaseDurations.procurementDays.toString()]);
-    rows.push(['Production', data.phaseDurations.productionDays.toString()]);
-    rows.push(['QA & Pack', data.phaseDurations.qaAndPackDays.toString()]);
+  // Client Milestones (same structure as tasks)
+  if (data.clientMilestones && data.clientMilestones.length > 0) {
+    rows.push(['CLIENT MILESTONES']);
+    rows.push(['Milestone ID', 'Milestone Name', 'Start Date', 'End Date', 'Duration (Days)', 'Success Factor']);
+    data.clientMilestones.forEach(milestone => {
+      const startDate = milestone.startDate 
+        ? new Date(milestone.startDate).toLocaleDateString() 
+        : 'TBC';
+      const endDate = milestone.endDate 
+        ? new Date(milestone.endDate).toLocaleDateString() 
+        : 'TBC';
+      rows.push([
+        milestone.id,
+        milestone.name,
+        startDate,
+        endDate,
+        milestone.duration.toString(),
+        milestone.successFactor,
+      ]);
+    });
     rows.push([]);
   }
   
-  // Milestones (legacy, if available)
-  if (data.milestones) {
-    rows.push(['MILESTONES (Legacy)']);
-    rows.push(['Milestone', 'Date']);
-    rows.push(['Design Start', data.milestones.designStart]);
-    rows.push(['Client Review Start', data.milestones.clientReviewStart]);
-    rows.push(['Approval Deadline', data.milestones.approvalDeadline]);
-    rows.push(['Procurement Start', data.milestones.procurementStart]);
-    rows.push(['Production Start', data.milestones.productionStart]);
-    rows.push(['Production Complete', data.milestones.productionComplete]);
-    rows.push(['Dispatch', data.milestones.dispatch]);
-    rows.push(['Truck Leave', data.milestones.truckLeaveDate]);
+  // Project Input Details (flattened)
+  if (data.projectInput) {
+    rows.push(['PROJECT INPUT DETAILS']);
+    rows.push(['Build Type', data.projectInput.buildType]);
+    rows.push(['Stand Size', data.projectInput.standSize]);
+    rows.push(['AV Complexity', data.projectInput.avComplexity]);
+    rows.push(['Fabrication Intensity', data.projectInput.fabricationIntensity]);
+    rows.push(['Brief Clarity', data.projectInput.briefClarity]);
+    rows.push(['Engineering Required', data.projectInput.engineeringRequired ? 'Yes' : 'No']);
+    rows.push(['Long Lead Items', data.projectInput.longLeadItems ? 'Yes' : 'No']);
     rows.push([]);
+    
+    // Information Gates
+    rows.push(['INFORMATION GATES']);
+    rows.push(['Gate', 'Status']);
+    rows.push(['Final Drawings', data.projectInput.infoGates.finalDrawings ? 'Complete' : 'Pending']);
+    rows.push(['Finishes Confirmed', data.projectInput.infoGates.finishesConfirmed ? 'Complete' : 'Pending']);
+    rows.push(['Branding Assets', data.projectInput.infoGates.brandingAssets ? 'Complete' : 'Pending']);
+    rows.push(['AV Inputs Confirmed', data.projectInput.infoGates.avInputsConfirmed ? 'Complete' : 'Pending']);
+    rows.push(['Engineering Signed Off', data.projectInput.infoGates.engineeringSignedOff ? 'Complete' : 'Pending']);
+    rows.push(['Client Scope Approved', data.projectInput.infoGates.clientScopeApproved ? 'Complete' : 'Pending']);
   }
-  
-  // Information Gates
-  rows.push(['INFORMATION GATES']);
-  rows.push(['Gate', 'Status']);
-  rows.push(['Final Drawings', data.informationGates.finalDrawings ? 'Complete' : 'Pending']);
-  rows.push(['Finishes Confirmed', data.informationGates.finishesConfirmed ? 'Complete' : 'Pending']);
-  rows.push(['Branding Assets', data.informationGates.brandingAssets ? 'Complete' : 'Pending']);
-  rows.push(['AV Inputs Confirmed', data.informationGates.avInputsConfirmed ? 'Complete' : 'Pending']);
-  rows.push(['Engineering Signed Off', data.informationGates.engineeringSignedOff ? 'Complete' : 'Pending']);
-  rows.push(['Client Scope Approved', data.informationGates.clientScopeApproved ? 'Complete' : 'Pending']);
   
   // Convert to CSV string
   const csvContent = rows
@@ -219,7 +201,22 @@ export function exportToCSV(input: ProjectInput, result: CalculationResult): voi
 
 export function exportToPDF(input: ProjectInput, result: CalculationResult): void {
   const data = prepareExportData(input, result);
-  const projectName = data.project.projectName || 'Untitled Project';
+  const projectName = data.projectName || 'Untitled Project';
+  
+  // Format date for display
+  const formatDateDisplay = (dateStr: string | null) => {
+    if (!dateStr) return 'TBC';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return 'TBC';
+    }
+  };
   
   // Create a printable HTML document
   const htmlContent = `
@@ -321,13 +318,6 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
     .badge-low { background: #dcfce7; color: #166534; }
     .badge-medium { background: #dbeafe; color: #1e40af; }
     .badge-high { background: #fee2e2; color: #991b1b; }
-    .badge-fast_track { background: #dcfce7; color: #166534; }
-    .badge-standard { background: #dbeafe; color: #1e40af; }
-    .badge-custom { background: #fef3c7; color: #92400e; }
-    .badge-high_risk { background: #fee2e2; color: #991b1b; }
-    .badge-ok { background: #dcfce7; color: #166534; }
-    .badge-tight { background: #fef3c7; color: #92400e; }
-    .badge-high { background: #fee2e2; color: #991b1b; }
     .progress-bar {
       width: 100%;
       height: 24px;
@@ -362,10 +352,10 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
   <div class="header">
     <h1>Production Milestone Calculator</h1>
     <div class="header-info">
-      <div><strong>Project:</strong> ${data.project.projectName || 'N/A'}</div>
-      <div><strong>Client:</strong> ${data.project.clientName || 'N/A'}</div>
-      <div><strong>Truck Leave Date:</strong> ${data.project.truckLeaveDate || 'Not Set'}</div>
-      <div><strong>Exported:</strong> ${new Date().toLocaleString()}</div>
+      <div><strong>Project:</strong> ${data.projectName || 'N/A'}</div>
+      <div><strong>Client:</strong> ${data.clientName || 'N/A'}</div>
+      <div><strong>Truck Leave Date:</strong> ${data.truckLeaveDate || 'Not Set'}</div>
+      <div><strong>Exported:</strong> ${new Date(data.exportedAt).toLocaleString()}</div>
     </div>
   </div>
 
@@ -374,42 +364,26 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
     <div class="grid-2">
       <div class="card">
         <div class="card-label">Complexity Index</div>
-        <div class="card-value">${data.calculation.complexityIndex}</div>
+        <div class="card-value">${data.ci}</div>
       </div>
       <div class="card">
         <div class="card-label">Complexity Bucket</div>
         <div class="card-value">
-          <span class="badge badge-${data.calculation.bucket}">${data.calculation.bucket}</span>
+          <span class="badge badge-${data.bucket}">${data.bucket}</span>
         </div>
       </div>
-      ${data.calculation.leadBucket ? `
-      <div class="card">
-        <div class="card-label">Lead Bucket</div>
-        <div class="card-value">
-          <span class="badge badge-${data.calculation.leadBucket}">${data.calculation.leadBucket.replace(/_/g, ' ')}</span>
-        </div>
-      </div>
-      ` : ''}
-      ${data.calculation.riskLevel ? `
-      <div class="card">
-        <div class="card-label">Risk Level</div>
-        <div class="card-value">
-          <span class="badge badge-${data.calculation.riskLevel}">${data.calculation.riskLevel}</span>
-        </div>
-      </div>
-      ` : ''}
       <div class="card">
         <div class="card-label">Information Completeness</div>
-        <div class="card-value">${(data.calculation.informationCompleteness * 100).toFixed(0)}%</div>
+        <div class="card-value">${(data.infoCompleteness * 100).toFixed(0)}%</div>
         <div class="progress-bar">
           <div class="progress-fill progress-${
-            data.calculation.informationCompleteness === 1
+            data.infoCompleteness === 1
               ? 'green'
-              : data.calculation.informationCompleteness >= 0.5
+              : data.infoCompleteness >= 0.5
               ? 'yellow'
               : 'red'
-          }" style="width: ${data.calculation.informationCompleteness * 100}%">
-            ${(data.calculation.informationCompleteness * 100).toFixed(0)}%
+          }" style="width: ${data.infoCompleteness * 100}%">
+            ${(data.infoCompleteness * 100).toFixed(0)}%
           </div>
         </div>
       </div>
@@ -425,15 +399,17 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
           <th>Task</th>
           <th>Start Date</th>
           <th>End Date</th>
+          <th>Duration (Days)</th>
           <th>Success Factor</th>
         </tr>
       </thead>
       <tbody>
         ${data.tasks.map(task => `
         <tr>
-          <td>${task.name}</td>
-          <td>${task.startDate}</td>
-          <td>${task.endDate}</td>
+          <td><strong>${task.name}</strong></td>
+          <td>${formatDateDisplay(task.startDate)}</td>
+          <td>${formatDateDisplay(task.endDate)}</td>
+          <td>${task.duration}</td>
           <td style="font-size: 11px; color: #64748b;">${task.successFactor}</td>
         </tr>
         `).join('')}
@@ -442,51 +418,68 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
   </div>
   ` : ''}
 
-  ${data.phaseDurations ? `
+  ${data.clientMilestones && data.clientMilestones.length > 0 ? `
   <div class="section">
-    <h2>Phase Durations (Legacy)</h2>
+    <h2>Client Milestones</h2>
     <table>
       <thead>
         <tr>
-          <th>Phase</th>
+          <th>Milestone</th>
+          <th>Start Date</th>
+          <th>End Date</th>
           <th>Duration (Days)</th>
+          <th>Success Factor</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>Design</td><td>${data.phaseDurations.designDays}</td></tr>
-        <tr><td>Client Review</td><td>${data.phaseDurations.clientReviewDays}</td></tr>
-        <tr><td>Approval Buffer</td><td>${data.phaseDurations.approvalBufferDays}</td></tr>
-        <tr><td>Procurement</td><td>${data.phaseDurations.procurementDays}</td></tr>
-        <tr><td>Production</td><td>${data.phaseDurations.productionDays}</td></tr>
-        <tr><td>QA & Pack</td><td>${data.phaseDurations.qaAndPackDays}</td></tr>
+        ${data.clientMilestones.map(milestone => `
+        <tr>
+          <td><strong>${milestone.name}</strong></td>
+          <td>${formatDateDisplay(milestone.startDate)}</td>
+          <td>${formatDateDisplay(milestone.endDate)}</td>
+          <td>${milestone.duration}</td>
+          <td style="font-size: 11px; color: #64748b;">${milestone.successFactor}</td>
+        </tr>
+        `).join('')}
       </tbody>
     </table>
   </div>
   ` : ''}
 
-  ${data.milestones ? `
+  ${data.projectInput ? `
   <div class="section">
-    <h2>Milestones (Legacy)</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Milestone</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>Design Start</td><td>${data.milestones.designStart}</td></tr>
-        <tr><td>Client Review Start</td><td>${data.milestones.clientReviewStart}</td></tr>
-        <tr><td>Approval Deadline</td><td>${data.milestones.approvalDeadline}</td></tr>
-        <tr><td>Procurement Start</td><td>${data.milestones.procurementStart}</td></tr>
-        <tr><td>Production Start</td><td>${data.milestones.productionStart}</td></tr>
-        <tr><td>Production Complete</td><td>${data.milestones.productionComplete}</td></tr>
-        <tr><td>Dispatch</td><td>${data.milestones.dispatch}</td></tr>
-        <tr><td><strong>Truck Leave</strong></td><td><strong>${data.milestones.truckLeaveDate}</strong></td></tr>
-      </tbody>
-    </table>
+    <h2>Project Input Details</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">Build Type</div>
+        <div class="card-value">${data.projectInput.buildType}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Stand Size</div>
+        <div class="card-value">${data.projectInput.standSize}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">AV Complexity</div>
+        <div class="card-value">${data.projectInput.avComplexity}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Fabrication Intensity</div>
+        <div class="card-value">${data.projectInput.fabricationIntensity}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Brief Clarity</div>
+        <div class="card-value">${data.projectInput.briefClarity}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Engineering Required</div>
+        <div class="card-value">${data.projectInput.engineeringRequired ? 'Yes' : 'No'}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Long Lead Items</div>
+        <div class="card-value">${data.projectInput.longLeadItems ? 'Yes' : 'No'}</div>
+      </div>
+    </div>
   </div>
-  ` : ''}
 
   <div class="section">
     <h2>Information Gates</h2>
@@ -498,19 +491,20 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
         </tr>
       </thead>
       <tbody>
-        <tr><td>Final Drawings</td><td>${data.informationGates.finalDrawings ? '✓ Complete' : '✗ Pending'}</td></tr>
-        <tr><td>Finishes Confirmed</td><td>${data.informationGates.finishesConfirmed ? '✓ Complete' : '✗ Pending'}</td></tr>
-        <tr><td>Branding Assets</td><td>${data.informationGates.brandingAssets ? '✓ Complete' : '✗ Pending'}</td></tr>
-        <tr><td>AV Inputs Confirmed</td><td>${data.informationGates.avInputsConfirmed ? '✓ Complete' : '✗ Pending'}</td></tr>
-        <tr><td>Engineering Signed Off</td><td>${data.informationGates.engineeringSignedOff ? '✓ Complete' : '✗ Pending'}</td></tr>
-        <tr><td>Client Scope Approved</td><td>${data.informationGates.clientScopeApproved ? '✓ Complete' : '✗ Pending'}</td></tr>
+        <tr><td>Final Drawings</td><td>${data.projectInput.infoGates.finalDrawings ? '✓ Complete' : '✗ Pending'}</td></tr>
+        <tr><td>Finishes Confirmed</td><td>${data.projectInput.infoGates.finishesConfirmed ? '✓ Complete' : '✗ Pending'}</td></tr>
+        <tr><td>Branding Assets</td><td>${data.projectInput.infoGates.brandingAssets ? '✓ Complete' : '✗ Pending'}</td></tr>
+        <tr><td>AV Inputs Confirmed</td><td>${data.projectInput.infoGates.avInputsConfirmed ? '✓ Complete' : '✗ Pending'}</td></tr>
+        <tr><td>Engineering Signed Off</td><td>${data.projectInput.infoGates.engineeringSignedOff ? '✓ Complete' : '✗ Pending'}</td></tr>
+        <tr><td>Client Scope Approved</td><td>${data.projectInput.infoGates.clientScopeApproved ? '✓ Complete' : '✗ Pending'}</td></tr>
       </tbody>
     </table>
   </div>
+  ` : ''}
 
   <div class="footer">
-    <p>Generated by Production Milestone Calculator</p>
-    <p>${new Date().toLocaleString()}</p>
+    <p>Generated by Production Milestone Calculator v2</p>
+    <p>${new Date(data.exportedAt).toLocaleString()}</p>
   </div>
 </body>
 </html>
@@ -527,4 +521,3 @@ export function exportToPDF(input: ProjectInput, result: CalculationResult): voi
     }, 250);
   }
 }
-

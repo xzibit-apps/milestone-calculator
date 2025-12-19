@@ -1,0 +1,14 @@
+{
+  "infoGates": {
+    "finalDrawings": "Final Drawings d",
+    "finishesConfirmed": "Finishes Confirmed",
+    "brandingAssets": "Branding Assets Approved",
+    "avInputsConfirmed": "AV Inputs Confirmed",
+    "engineeringSignedOff": "Engineering Signed Off",
+    "clientScopeApproved": "Client Scope Approved"
+  },
+  "optionalFlags": {
+    "engineeringRequired": "Engineering Required",
+    "longLeadItems": "Long-lead Items"
+  }
+}

@@ -27,15 +27,13 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       case 'high':
         return 'bg-red-500/20 text-red-400 border-red-500/30';
-      // Legacy buckets
+      // Legacy buckets (kept for backward compatibility only)
       case 'fast_track':
         return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'standard':
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       case 'custom':
         return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'high_risk':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
       default:
         return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
@@ -49,15 +47,13 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
         return MESSAGES.BUCKET_MEDIUM;
       case 'high':
         return MESSAGES.BUCKET_HIGH;
-      // Legacy buckets
+      // Legacy buckets (kept for backward compatibility only)
       case 'fast_track':
         return MESSAGES.BUCKET_FAST_TRACK;
       case 'standard':
         return MESSAGES.BUCKET_STANDARD;
       case 'custom':
         return MESSAGES.BUCKET_CUSTOM;
-      case 'high_risk':
-        return MESSAGES.BUCKET_HIGH_RISK;
       default:
         return bucket;
     }
@@ -120,7 +116,7 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                 <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full blur-2xl"></div>
                 <div className="relative z-10">
                   <div className="text-[10px] sm:text-xs text-[#94a3b8] uppercase tracking-wider mb-2 sm:mb-3 font-semibold">
-                    {MESSAGES.LEAD_BUCKET}
+                    {MESSAGES.COMPLEXITY_BUCKET}
                   </div>
                   <div className="text-base sm:text-lg lg:text-xl font-extrabold text-white wrap-break-word">
                     {getBucketLabel(bucket)}
@@ -141,7 +137,9 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                 <div className="space-y-2.5 sm:space-y-2.5 max-h-[700px] overflow-y-auto">
                   {result.tasks.map((task, index) => {
                     const isTruckLeave = task.id === 'truck_leave_date';
-                    const days = countWorkingDays(task.startDate, task.endDate);
+                    // Use duration from task, or calculate from dates if available
+                    const days = task.duration ?? (task.startDate && task.endDate ? countWorkingDays(task.startDate, task.endDate) : 0);
+                    const hasDates = task.startDate !== null && task.endDate !== null;
                     return (
                       <div
                         key={task.id}
@@ -180,7 +178,7 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                               START DATE
                             </div>
                             <div className="text-xs sm:text-sm font-bold text-white whitespace-nowrap">
-                              {formatDate(task.startDate)}
+                              {hasDates ? formatDate(task.startDate) : 'TBC'}
                             </div>
                           </div>
                           <div className="text-right">
@@ -192,7 +190,7 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                                 isTruckLeave ? 'text-[#60a5fa]' : 'text-white'
                               }`}
                             >
-                              {formatDate(task.endDate)}
+                              {hasDates ? formatDate(task.endDate) : 'TBC'}
                             </div>
                           </div>
                           <div className="text-right">
@@ -220,7 +218,26 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                       {MESSAGES.TRUCK_LEAVE_DATE_REQUIRED_TITLE}
                     </p>
                     <p className="text-[10px] sm:text-xs text-[#94a3b8] leading-relaxed">
-                      {MESSAGES.TRUCK_LEAVE_DATE_REQUIRED_MESSAGE}
+                      Enter a Truck Leave Date to generate milestone dates.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Show helper message if tasks exist but no dates */}
+            {result.tasks && result.tasks.length > 0 && result.tasks[0].startDate === null && (
+              <div className="bg-linear-to-br from-[#0b2545] to-[#0f172a] backdrop-blur-md border border-[#203049] rounded-lg sm:rounded-xl p-4 sm:p-5">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-400/20 rounded-lg p-1.5 sm:p-2 shrink-0">
+                    <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-bold text-blue-400 mb-1">
+                      Durations Calculated
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-[#94a3b8] leading-relaxed">
+                      Enter a Truck Leave Date to generate milestone dates.
                     </p>
                   </div>
                 </div>
@@ -230,11 +247,17 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
             {/* Project Timeline */}
             {result.tasks &&
               result.tasks.length > 0 &&
+              result.tasks[0].startDate !== null &&
+              result.tasks[result.tasks.length - 1].endDate !== null &&
               (() => {
                 const firstTask = result.tasks[0];
                 const lastTask = result.tasks[result.tasks.length - 1];
                 const startDate = firstTask.startDate;
                 const endDate = lastTask.endDate;
+                
+                // TypeScript guard: we already checked for null above, but need to assert here
+                if (!startDate || !endDate) return null;
+                
                 const totalWorkingDays = countWorkingDays(startDate, endDate);
 
                 // Format date for display (e.g., "17 Jan 1975")
@@ -325,8 +348,7 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                 />
               </div>
               <p className="text-[10px] sm:text-xs text-[#64748b] text-center font-medium">
-                {Object.values(input.infoGates).filter(Boolean).length} of{' '}
-                {Object.keys(input.infoGates).length} gates complete
+                Information completeness: {Object.values(input.infoGates).filter(Boolean).length} / {Object.keys(input.infoGates).length} gates complete ({Math.round(result.infoCompleteness * 100)}%)
               </p>
             </div>
           </div>

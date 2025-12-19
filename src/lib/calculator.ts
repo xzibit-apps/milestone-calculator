@@ -1,7 +1,8 @@
 // lib/calculator.ts
-// Updated logic for Production Milestone Calculator v2
+// Production Milestone Calculator v2
 // - Uses Truck Leave Date as anchor
 // - Uses task config loaded from config/tasks.json
+// - Uses CI config loaded from config/ciConfig.json
 // - Schedules tasks sequentially backwards (parallel/graph logic can be phase 2)
 
 import type {
@@ -18,54 +19,55 @@ import type {
   InfoGates,
 } from './types';
 
-// --- Complexity scoring tables ---
+// CI Config types
+export interface CIConfig {
+  weights: {
+    buildType: Record<BuildType, number>;
+    standSize: Record<StandSize, number>;
+    avComplexity: Record<AvComplexity, number>;
+    fabricationIntensity: Record<FabricationIntensity, number>;
+    briefClarity: Record<BriefClarity, number>;
+    engineeringRequired: number;
+    longLeadItems: number;
+  };
+  thresholds: {
+    lowMax: number;
+    mediumMax: number;
+  };
+}
 
-const BUILD_TYPE_SCORES: Record<BuildType, number> = {
-  hire: 1,
-  hybrid: 3,
-  custom: 5,
-  engineered: 8,
-};
+// Load CI config (will be loaded from JSON at runtime)
+let ciConfigCache: CIConfig | null = null;
 
-const STAND_SIZE_SCORES: Record<StandSize, number> = {
-  small: 1,
-  medium: 3,
-  large: 5,
-};
+export function loadCIConfig(): CIConfig {
+  if (ciConfigCache) return ciConfigCache;
+  
+  // In browser, we'll need to fetch this
+  // For now, return default - will be updated when we load from JSON
+  throw new Error('CI Config must be loaded from JSON file');
+}
 
-const AV_COMPLEXITY_SCORES: Record<AvComplexity, number> = {
-  basic: 1,
-  medium: 2,
-  high: 4,
-};
+export function setCIConfig(config: CIConfig): void {
+  ciConfigCache = config;
+}
 
-const FABRICATION_SCORES: Record<FabricationIntensity, number> = {
-  standard: 1,
-  some_custom: 3,
-  heavy_custom: 6,
-};
+// --- Complexity scoring (now uses config) ---
 
-const BRIEF_CLARITY_SCORES: Record<BriefClarity, number> = {
-  clear: 0,
-  some_unknowns: 2,
-  vague: 5,
-};
-
-export function calculateCI(input: ProjectInput): number {
+export function calculateCI(input: ProjectInput, ciConfig: CIConfig): number {
   let score = 0;
-  score += BUILD_TYPE_SCORES[input.buildType];
-  score += STAND_SIZE_SCORES[input.standSize];
-  score += AV_COMPLEXITY_SCORES[input.avComplexity];
-  score += FABRICATION_SCORES[input.fabricationIntensity];
-  score += BRIEF_CLARITY_SCORES[input.briefClarity];
-  if (input.engineeringRequired) score += 3;
-  if (input.longLeadItems) score += 2;
+  score += ciConfig.weights.buildType[input.buildType];
+  score += ciConfig.weights.standSize[input.standSize];
+  score += ciConfig.weights.avComplexity[input.avComplexity];
+  score += ciConfig.weights.fabricationIntensity[input.fabricationIntensity];
+  score += ciConfig.weights.briefClarity[input.briefClarity];
+  if (input.engineeringRequired) score += ciConfig.weights.engineeringRequired;
+  if (input.longLeadItems) score += ciConfig.weights.longLeadItems;
   return score;
 }
 
-export function mapBucket(ci: number): ComplexityBucket {
-  if (ci <= 8) return "low";
-  if (ci <= 15) return "medium";
+export function mapBucket(ci: number, ciConfig: CIConfig): ComplexityBucket {
+  if (ci <= ciConfig.thresholds.lowMax) return "low";
+  if (ci <= ciConfig.thresholds.mediumMax) return "medium";
   return "high";
 }
 
@@ -94,7 +96,9 @@ export function addWorkingDays(date: Date, days: number): Date {
 }
 
 // Count working days between two dates (inclusive)
-export function countWorkingDays(startDate: Date, endDate: Date): number {
+export function countWorkingDays(startDate: Date | null, endDate: Date | null): number {
+  if (!startDate || !endDate) return 0;
+  
   let count = 0;
   const current = new Date(startDate);
   const end = new Date(endDate);
@@ -120,14 +124,15 @@ export function selectTasksForProject(
   allTasks: TaskConfig[],
   input: ProjectInput
 ): TaskConfig[] {
-  const tags: string[] = [];
+  // Derive project tags
+  const tags: string[] = ["all"]; // Always include "all"
   tags.push(input.buildType);
   if (input.engineeringRequired) tags.push("engineering");
   if (input.avComplexity === "high") tags.push("av_heavy");
 
   return allTasks.filter((t) => {
     if (!t.scopeConditions || t.scopeConditions.length === 0) return true;
-    if (t.scopeConditions.includes("all")) return true;
+    // Task is included if any of its scopeConditions match any project tag
     return t.scopeConditions.some((cond) => tags.includes(cond));
   });
 }
@@ -151,23 +156,54 @@ export function scheduleSequentialBackwards(
 ): ScheduledTask[] {
   const scheduled: ScheduledTask[] = [];
   let currentEnd = new Date(truckLeaveDate);
+  currentEnd.setHours(0, 0, 0, 0);
 
-  // assume tasks[] is in logical order from first -> last
+  // Walk backwards through tasks (tasks array is in forward order)
   for (let i = tasks.length - 1; i >= 0; i--) {
     const task = tasks[i];
     const duration = getDurationForBucket(task, bucket);
-    const start =
-      duration > 0 ? addWorkingDays(currentEnd, -duration) : new Date(currentEnd);
-    const end = new Date(currentEnd);
+    
+    let start: Date | null = null;
+    let end: Date | null = null;
+    
+    if (duration > 0) {
+      // Calculate start date by going backwards
+      start = addWorkingDays(currentEnd, -duration);
+      end = new Date(currentEnd);
+    } else {
+      // Zero-duration task (like Truck Leave Date)
+      start = new Date(currentEnd);
+      end = new Date(currentEnd);
+    }
+    
     scheduled.unshift({
       ...task,
       startDate: start,
       endDate: end,
+      duration: duration,
     });
+    
+    // Move currentEnd backwards for next iteration
     currentEnd = start;
   }
 
   return scheduled;
+}
+
+// Schedule tasks without dates (when truckLeaveDate is not provided)
+export function scheduleTasksWithoutDates(
+  tasks: TaskConfig[],
+  bucket: ComplexityBucket
+): ScheduledTask[] {
+  return tasks.map((task) => {
+    const duration = getDurationForBucket(task, bucket);
+    return {
+      ...task,
+      startDate: null,
+      endDate: null,
+      duration: duration,
+    };
+  });
 }
 
 // Helper to format dates for UI
@@ -183,10 +219,11 @@ export function formatDate(date: Date | null | undefined): string {
 // Main entrypoint
 export function runCalculation(
   input: ProjectInput,
-  allTasks: TaskConfig[]
+  allTasks: TaskConfig[],
+  ciConfig: CIConfig
 ): CalculationResult {
-  const ci = calculateCI(input);
-  const bucket = mapBucket(ci);
+  const ci = calculateCI(input, ciConfig);
+  const bucket = mapBucket(ci, ciConfig);
   const infoCompleteness = calculateInfoCompleteness(input.infoGates);
 
   const truckLeave =
@@ -198,14 +235,27 @@ export function runCalculation(
   let scheduled: ScheduledTask[] = [];
 
   if (truckLeave && !isNaN(truckLeave.getTime())) {
+    // Validate that truck leave date is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const truckLeaveDate = new Date(truckLeave);
+    truckLeaveDate.setHours(0, 0, 0, 0);
+    
+       if (truckLeaveDate < today) {
+      throw new Error('Truck leave date cannot be in the past');
+    }
+    
     scheduled = scheduleSequentialBackwards(truckLeave, scopedTasks, bucket);
+  } else {
+    // No truck leave date - schedule with durations only
+    scheduled = scheduleTasksWithoutDates(scopedTasks, bucket);
   }
 
   return {
     ci,
     bucket,
     tasks: scheduled,
-    clientMilestones: scheduled,
+    clientMilestones: scheduled, // For v2, same as tasks
     infoCompleteness,
   };
 }

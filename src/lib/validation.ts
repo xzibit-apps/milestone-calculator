@@ -28,10 +28,18 @@ export const projectInputSchema = z.object({
     if (isNaN(date.getTime())) {
       return false;
     }
+    // Ensure date is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const inputDate = new Date(date);
+    inputDate.setHours(0, 0, 0, 0);
+    if (inputDate < today) {
+      return false;
+    }
   }
   return true;
 }, {
-  message: MESSAGES.TRUCK_LEAVE_DATE_INVALID,
+  message: MESSAGES.TRUCK_LEAVE_DATE_FUTURE,
   path: ['truckLeaveDate'],
 });
 

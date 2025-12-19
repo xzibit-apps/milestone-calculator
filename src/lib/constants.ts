@@ -47,10 +47,10 @@ export const MESSAGES = {
   // Results
   CALCULATED_SPECS: 'Calculated Specs',
   COMPLEXITY_INDEX: 'Complexity Index',
-  LEAD_BUCKET: 'Lead Bucket',
+  COMPLEXITY_BUCKET: 'Complexity Bucket',
+  LEAD_BUCKET: 'Lead Bucket', // Legacy - kept for backward compatibility
   PHASE_DURATIONS: 'Phase Durations (Days)',
   MILESTONES: 'Milestones',
-  RISK_LEVEL: 'Risk Level',
   INFORMATION_COMPLETENESS: 'Information Completeness',
   
   // Empty States
@@ -58,11 +58,7 @@ export const MESSAGES = {
   TRUCK_LEAVE_DATE_REQUIRED_TITLE: 'Truck Leave Date Required',
   TRUCK_LEAVE_DATE_REQUIRED_MESSAGE: 'Enter a Truck Leave Date to calculate milestones',
   
-  // Risk Levels
-  RISK_OK: 'On Track',
-  RISK_TIGHT: 'Tight',
-  RISK_HIGH: 'High Risk',
-  RISK_UNKNOWN: 'Unknown',
+  // Risk Levels removed in v2 - no risk scoring per spec section 9.3
   
   // Lead Buckets (legacy)
   BUCKET_FAST_TRACK: 'Fast Track',
@@ -118,5 +114,20 @@ export const MESSAGES = {
   BRIEF_CLEAR: 'Clear',
   BRIEF_SOME_UNKNOWNS: 'Some Unknowns',
   BRIEF_VAGUE: 'Vague',
+  
+  // Error Messages
+  ERROR_CALCULATION_FAILED: 'Failed to calculate milestones. Please check your inputs and try again.',
+  ERROR_CONFIG_NOT_LOADED: 'Configuration not loaded. Please refresh the page.',
+  ERROR_INVALID_TRUCK_DATE: 'Truck leave date cannot be in the past.',
+} as const;
+
+// Timing Constants
+export const TIMING = {
+  // Admin page message display duration (milliseconds)
+  MESSAGE_DISPLAY_DURATION: 3000,
+  // Fade animation duration (milliseconds)
+  FADE_ANIMATION_DURATION: 300,
+  // Minimum calculation delay for smooth UX (milliseconds)
+  CALCULATION_DELAY: 100,
 } as const;
 

@@ -1,0 +1,36 @@
+{
+  "weights": {
+    "buildType": {
+      "hire": 1,
+      "hybrid": 3,
+      "custom": 5,
+      "engineered": 8
+    },
+    "standSize": {
+      "small": 1,
+      "medium": 3,
+      "large": 5
+    },
+    "avComplexity": {
+      "basic": 1,
+      "medium": 2,
+      "high": 4
+    },
+    "fabricationIntensity": {
+      "standard": 1,
+      "some_custom": 3,
+      "heavy_custom": 6
+    },
+    "briefClarity": {
+      "clear": 0,
+      "some_unknowns": 2,
+      "vague": 5
+    },
+    "engineeringRequired": 3,
+    "longLeadItems": 2
+  },
+  "thresholds": {
+    "lowMax": 8,
+    "mediumMax": 15
+  }
+}

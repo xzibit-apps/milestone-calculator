@@ -9,10 +9,16 @@ import { Target, Calendar, Zap, AlertCircle } from 'lucide-react';
 import { MESSAGES } from '@/lib/constants';
 import type { ProjectInputFormData } from '@/lib/validation';
 
+interface LabelsConfig {
+  infoGates: Record<string, string>;
+  optionalFlags: Record<string, string>;
+}
+
 interface ProjectFormProps {
   form: UseFormReturn<ProjectInputFormData>;
   onSubmit: (data: ProjectInputFormData) => void;
   isCalculating: boolean;
+  labels: LabelsConfig | null;
 }
 
 interface SelectOption {
@@ -198,6 +204,7 @@ export default function ProjectForm({
   form,
   onSubmit,
   isCalculating,
+  labels,
 }: ProjectFormProps) {
   const {
     register,
@@ -327,12 +334,12 @@ export default function ProjectForm({
           <div className="space-y-2 sm:space-y-3">
             <FormCheckbox
               id="engineeringRequired"
-              label={MESSAGES.ENGINEERING_REQUIRED}
+              label={labels?.optionalFlags?.engineeringRequired || MESSAGES.ENGINEERING_REQUIRED}
               register={register('engineeringRequired')}
             />
             <FormCheckbox
               id="longLeadItems"
-              label={MESSAGES.LONG_LEAD_ITEMS}
+              label={labels?.optionalFlags?.longLeadItems || MESSAGES.LONG_LEAD_ITEMS}
               register={register('longLeadItems')}
             />
           </div>
@@ -345,32 +352,32 @@ export default function ProjectForm({
           <div className="space-y-2 sm:space-y-3">
             <FormCheckbox
               id="finalDrawings"
-              label={MESSAGES.FINAL_DRAWINGS}
+              label={labels?.infoGates?.finalDrawings || MESSAGES.FINAL_DRAWINGS}
               register={register('infoGates.finalDrawings')}
             />
             <FormCheckbox
               id="finishesConfirmed"
-              label={MESSAGES.FINISHES_CONFIRMED}
+              label={labels?.infoGates?.finishesConfirmed || MESSAGES.FINISHES_CONFIRMED}
               register={register('infoGates.finishesConfirmed')}
             />
             <FormCheckbox
               id="brandingAssets"
-              label={MESSAGES.BRANDING_ASSETS}
+              label={labels?.infoGates?.brandingAssets || MESSAGES.BRANDING_ASSETS}
               register={register('infoGates.brandingAssets')}
             />
             <FormCheckbox
               id="avInputsConfirmed"
-              label={MESSAGES.AV_INPUTS_CONFIRMED}
+              label={labels?.infoGates?.avInputsConfirmed || MESSAGES.AV_INPUTS_CONFIRMED}
               register={register('infoGates.avInputsConfirmed')}
             />
             <FormCheckbox
               id="engineeringSignedOff"
-              label={MESSAGES.ENGINEERING_SIGNED_OFF}
+              label={labels?.infoGates?.engineeringSignedOff || MESSAGES.ENGINEERING_SIGNED_OFF}
               register={register('infoGates.engineeringSignedOff')}
             />
             <FormCheckbox
               id="clientScopeApproved"
-              label={MESSAGES.CLIENT_SCOPE_APPROVED}
+              label={labels?.infoGates?.clientScopeApproved || MESSAGES.CLIENT_SCOPE_APPROVED}
               register={register('infoGates.clientScopeApproved')}
             />
           </div>

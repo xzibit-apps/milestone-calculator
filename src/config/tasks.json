@@ -158,7 +158,7 @@
   },
   {
     "id": "contingency",
-    "name": "Contingency (5days)",
+    "name": "Contingency",
     "durationLow": 1,
     "durationMedium": 3,
     "durationHigh": 5,
@@ -181,4 +181,3 @@
     "internalNotes": ""
   }
 ]
-

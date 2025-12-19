@@ -4,9 +4,9 @@ export type StandSize = "small" | "medium" | "large";
 export type AvComplexity = "basic" | "medium" | "high";
 export type FabricationIntensity = "standard" | "some_custom" | "heavy_custom";
 export type BriefClarity = "clear" | "some_unknowns" | "vague";
-export type LeadBucket = "fast_track" | "standard" | "custom" | "high_risk";
+export type LeadBucket = "fast_track" | "standard" | "custom" | "high_risk"; // Legacy type, kept for backward compatibility
 export type ComplexityBucket = "low" | "medium" | "high";
-export type RiskLevel = "ok" | "tight" | "high" | "unknown";
+// RiskLevel removed in v2 - no risk scoring per spec section 9.3
 
 export interface InfoGates {
   finalDrawings: boolean;
@@ -66,30 +66,13 @@ export interface TaskConfig {
 }
 
 export interface ScheduledTask extends TaskConfig {
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
+  duration: number; // chosen bucket duration (durationLow, durationMedium, or durationHigh)
 }
 
-// Legacy types (kept for backward compatibility)
-export interface PhaseDurations {
-  designDays: number;
-  clientReviewDays: number;
-  approvalBufferDays: number;
-  procurementDays: number;
-  productionDays: number;
-  qaAndPackDays: number;
-}
-
-export interface Milestones {
-  designStart: Date;
-  clientReviewStart: Date;
-  approvalDeadline: Date;
-  procurementStart: Date;
-  productionStart: Date;
-  productionComplete: Date;
-  dispatch: Date;
-  truckLeaveDate: Date;
-}
+// Note: PhaseDurations and Milestones are legacy types kept for backward compatibility
+// They are defined above and reused here for CalculationResult
 
 // Updated CalculationResult (v2)
 export interface CalculationResult {
@@ -102,6 +85,6 @@ export interface CalculationResult {
   leadBucket?: LeadBucket;
   durations?: PhaseDurations;
   milestones?: Milestones | null;
-  riskLevel?: RiskLevel;
+  // riskLevel removed in v2 - no risk scoring per spec section 9.3
 }
 
