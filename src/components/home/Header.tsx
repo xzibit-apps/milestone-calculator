@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CalendarCheck, Calendar, TrendingUp, Shield, Zap, Settings } from 'lucide-react';
+import { CalendarCheck, Calendar, TrendingUp, Shield, Zap, Settings, Home } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Header() {
@@ -56,6 +56,17 @@ export default function Header() {
                   Generate accurate project timelines based on complexity
                   scoring and working days
                 </p>
+              </div>
+
+              {/* Apps Home button */}
+              <div className="shrink-0 mt-4 sm:mt-0">
+                <a
+                  href="https://xzibit-apps.vercel.app"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#60a5fa]/10 hover:bg-[#60a5fa]/20 border border-[#60a5fa]/30 hover:border-[#60a5fa]/60 rounded-xl text-[#94a3b8] hover:text-[#60a5fa] font-medium transition-all duration-300 text-sm"
+                >
+                  <Home className="h-4 w-4" />
+                  <span>Apps Home</span>
+                </a>
               </div>
 
               {/* Admin Dashboard Button - Only show for admin users */}
