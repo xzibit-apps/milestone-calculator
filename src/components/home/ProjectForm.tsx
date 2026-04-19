@@ -5,7 +5,7 @@ import {
   FieldError,
   UseFormRegisterReturn,
 } from 'react-hook-form';
-import { Target, Calendar, Zap, AlertCircle } from 'lucide-react';
+import { Calendar, Zap, AlertCircle } from 'lucide-react';
 import { MESSAGES } from '@/lib/constants';
 import type { ProjectInputFormData } from '@/lib/validation';
 
@@ -26,7 +26,6 @@ interface SelectOption {
   label: string;
 }
 
-// Move components outside to prevent re-creation on every render
 const FormInput = ({
   id,
   label,
@@ -53,82 +52,54 @@ const FormInput = ({
 
   const handleDateInputClick = () => {
     if (isDateInput && inputRef.current) {
-      // showPicker must be called directly from user gesture, not in setTimeout
       if (typeof inputRef.current.showPicker === 'function') {
         try {
           inputRef.current.showPicker();
         } catch {
-          // If showPicker fails, just focus the input (native date picker will open on focus)
           inputRef.current.focus();
         }
       } else {
-        // Fallback: just focus
         inputRef.current.focus();
       }
     }
   };
 
-  // Merge refs properly
   const { ref, ...registerRest } = register;
+  const hasIcon = Boolean(icon);
 
   return (
-    <div>
-      <label
-        htmlFor={id}
-        className="block text-xs text-[#94a3b8] mb-2 uppercase tracking-wide"
-      >
-        {label} {required && <span className="text-red-400">*</span>}
+    <div className="field">
+      <label htmlFor={id} className="field-label">
+        {label}
+        {required && <span className="required" aria-hidden="true">*</span>}
       </label>
-      <div className="relative">
-        {isDateInput && icon ? (
-          <>
-            <input
-              id={id}
-              type={type}
-              {...registerRest}
-              ref={(e) => {
-                ref(e);
-                inputRef.current = e;
-              }}
-              onClick={handleDateInputClick}
-              className={`w-full pl-3 pr-10 sm:pl-4 sm:pr-12 py-2.5 sm:py-3 text-sm sm:text-base bg-[#0b1a2e]/90 backdrop-blur-md border rounded-lg sm:rounded-xl text-[#e2e8f0] placeholder:text-[#64748b] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/50 focus:border-[#60a5fa] focus:bg-[#0b1a2e] focus:shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:border-[#60a5fa]/50 transition-all duration-300 cursor-pointer ${
-                error ? 'border-red-500/50' : 'border-[#203049]/80'
-              }`}
-              placeholder={placeholder}
-            />
-            <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-            </div>
-          </>
-        ) : (
-          <>
-            {icon && (
-              <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                {icon}
-              </div>
-            )}
-            <input
-              id={id}
-              type={type}
-              {...register}
-              className={`w-full ${
-                icon ? 'pl-10 sm:pl-12' : 'pl-3 sm:pl-4'
-              } pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base bg-[#0b1a2e]/90 backdrop-blur-md border rounded-lg sm:rounded-xl text-[#e2e8f0] placeholder:text-[#64748b] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/50 focus:border-[#60a5fa] focus:bg-[#0b1a2e] focus:shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:border-[#60a5fa]/50 transition-all duration-300 ${
-                error ? 'border-red-500/50' : 'border-[#203049]/80'
-              }`}
-              placeholder={placeholder}
-            />
-          </>
+      <div className="input-wrap">
+        <input
+          id={id}
+          type={type}
+          {...(isDateInput ? registerRest : register)}
+          ref={isDateInput ? (e) => {
+            ref(e);
+            inputRef.current = e;
+          } : undefined}
+          onClick={isDateInput ? handleDateInputClick : undefined}
+          className={`input ${hasIcon ? 'input--with-icon' : ''} ${error ? 'input--error' : ''}`.trim()}
+          placeholder={placeholder}
+        />
+        {hasIcon && (
+          <span className="input-icon" aria-hidden="true">
+            {icon}
+          </span>
         )}
       </div>
       {error && (
-        <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" />
+        <p className="field-error">
+          <AlertCircle className="h-3 w-3" aria-hidden="true" />
           {error.message}
         </p>
       )}
       {helpText && !error && (
-        <p className="mt-2 text-xs text-[#64748b]">{helpText}</p>
+        <p className="field-help">{helpText}</p>
       )}
     </div>
   );
@@ -149,19 +120,15 @@ const FormSelect = ({
   options: SelectOption[];
   required?: boolean;
 }) => (
-  <div>
-    <label
-      htmlFor={id}
-      className="block text-xs text-[#94a3b8] mb-2 uppercase tracking-wide"
-    >
-      {label} {required && <span className="text-red-400">*</span>}
+  <div className="field">
+    <label htmlFor={id} className="field-label">
+      {label}
+      {required && <span className="required" aria-hidden="true">*</span>}
     </label>
     <select
       id={id}
       {...register}
-      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-[#0b1a2e]/90 backdrop-blur-md border rounded-lg sm:rounded-xl text-[#e2e8f0] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/50 focus:border-[#60a5fa] focus:bg-[#0b1a2e] focus:shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:border-[#60a5fa]/50 transition-all duration-300 cursor-pointer ${
-        error ? 'border-red-500/50' : 'border-[#203049]/80'
-      }`}
+      className={`select ${error ? 'select--error' : ''}`.trim()}
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -170,8 +137,8 @@ const FormSelect = ({
       ))}
     </select>
     {error && (
-      <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
-        <AlertCircle className="h-3 w-3" />
+      <p className="field-error">
+        <AlertCircle className="h-3 w-3" aria-hidden="true" />
         {error.message}
       </p>
     )}
@@ -187,16 +154,9 @@ const FormCheckbox = ({
   label: string;
   register: UseFormRegisterReturn;
 }) => (
-  <label className="flex items-center cursor-pointer group">
-    <input
-      id={id}
-      type="checkbox"
-      {...register}
-      className="h-4 w-4 text-[#60a5fa] border-[#203049] rounded bg-[#0b1a2e] focus:ring-2 focus:ring-[#60a5fa] cursor-pointer"
-    />
-    <span className="ml-3 text-sm text-[#e2e8f0] group-hover:text-[#60a5fa] transition-colors">
-      {label}
-    </span>
+  <label className="checkbox" htmlFor={id}>
+    <input id={id} type="checkbox" {...register} />
+    <span>{label}</span>
   </label>
 );
 
@@ -213,23 +173,13 @@ export default function ProjectForm({
   } = form;
 
   return (
-    <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-[#203049]/60 rounded-2xl sm:rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_48px_rgba(96,165,250,0.15)] transition-all duration-700 relative overflow-hidden group">
-      <div className="absolute inset-0 bg-linear-to-br from-[#60a5fa]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-      <div className="p-4 sm:p-6 lg:p-8 border-b border-[#203049]/50 bg-linear-to-r from-[#0f172a]/95 to-[#1e293b]/95 backdrop-blur-sm relative z-10">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="bg-[#60a5fa]/20 rounded-lg p-1.5 sm:p-2 border border-[#60a5fa]/30">
-            <Target className="h-4 w-4 sm:h-5 sm:w-5 text-[#60a5fa]" />
-          </div>
-          <h2 className="text-base sm:text-lg font-bold text-white">
-            {MESSAGES.INPUTS}
-          </h2>
-        </div>
-      </div>
+    <div className="card">
+      <div className="card-eyebrow">Inputs</div>
+      <div className="card-title">{MESSAGES.INPUTS}</div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 relative z-10"
+        style={{ marginTop: 'var(--xz-s-5)', display: 'flex', flexDirection: 'column', gap: 'var(--xz-s-4)' }}
       >
         <FormInput
           id="projectName"
@@ -258,7 +208,7 @@ export default function ProjectForm({
           register={register('truckLeaveDate')}
           error={errors.truckLeaveDate}
           helpText={MESSAGES.TRUCK_LEAVE_DATE_HELP}
-          icon={<Calendar className="h-5 w-5" />}
+          icon={<Calendar className="h-4 w-4" />}
         />
 
         <FormSelect
@@ -327,11 +277,9 @@ export default function ProjectForm({
           ]}
         />
 
-        <div className="pt-4 border-t border-[#203049]">
-          <h3 className="text-xs text-[#94a3b8] mb-3 uppercase tracking-wide">
-            {MESSAGES.OPTIONAL_FLAGS}
-          </h3>
-          <div className="space-y-2 sm:space-y-3">
+        <fieldset className="fieldset">
+          <div className="fieldset-title">{MESSAGES.OPTIONAL_FLAGS}</div>
+          <div className="fieldset-list">
             <FormCheckbox
               id="engineeringRequired"
               label={labels?.optionalFlags?.engineeringRequired || MESSAGES.ENGINEERING_REQUIRED}
@@ -343,13 +291,11 @@ export default function ProjectForm({
               register={register('longLeadItems')}
             />
           </div>
-        </div>
+        </fieldset>
 
-        <div className="pt-4 border-t border-[#203049]">
-          <h3 className="text-xs text-[#94a3b8] mb-3 uppercase tracking-wide">
-            {MESSAGES.INFORMATION_GATES}
-          </h3>
-          <div className="space-y-2 sm:space-y-3">
+        <fieldset className="fieldset">
+          <div className="fieldset-title">{MESSAGES.INFORMATION_GATES}</div>
+          <div className="fieldset-list">
             <FormCheckbox
               id="finalDrawings"
               label={labels?.infoGates?.finalDrawings || MESSAGES.FINAL_DRAWINGS}
@@ -381,24 +327,24 @@ export default function ProjectForm({
               register={register('infoGates.clientScopeApproved')}
             />
           </div>
-        </div>
+        </fieldset>
 
         <button
           type="submit"
           disabled={isCalculating}
-          className="w-full bg-linear-to-r from-[#60a5fa] via-[#3b82f6] to-[#2563eb] hover:from-[#3b82f6] hover:via-[#2563eb] hover:to-[#1d4ed8] disabled:from-[#475569] disabled:via-[#334155] disabled:to-[#1e293b] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 shadow-[0_4px_20px_rgba(96,165,250,0.4)] hover:shadow-[0_6px_30px_rgba(96,165,250,0.6)] hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-none relative overflow-hidden group mt-6 sm:mt-8 cursor-pointer"
+          className="btn btn--primary"
+          style={{ marginTop: 'var(--xz-s-3)', width: '100%', justifyContent: 'center' }}
         >
-          <div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {isCalculating ? (
-            <span className="flex items-center justify-center gap-2.5 relative z-10">
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <>
+              <span className="spinner" aria-hidden="true" />
               <span>{MESSAGES.CALCULATING}</span>
-            </span>
+            </>
           ) : (
-            <span className="flex items-center justify-center gap-2.5 relative z-10">
-              <Zap className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+            <>
+              <Zap className="h-4 w-4" aria-hidden="true" />
               <span>{MESSAGES.CALCULATE_MILESTONES}</span>
-            </span>
+            </>
           )}
         </button>
       </form>

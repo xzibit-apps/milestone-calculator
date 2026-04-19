@@ -366,3 +366,21 @@
 }
 
 .alert .dismiss:hover { color: var(--xz-ink); background: var(--xz-surface-soft); }
+
+/* ---------- spinner (v1.1 candidate) -------------------------------------
+ * Tiny inline loading glyph for buttons; matches currentColor so it works
+ * on any .btn variant. */
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-rotate 0.7s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to { transform: rotate(360deg); }
+}
