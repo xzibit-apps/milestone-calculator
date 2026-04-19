@@ -35,6 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# documentation files (exclude README.md)
+# documentation files (exclude README.md, CLAUDE.md, NIGHT_RUN_QUESTIONS.md, AUDIT.md)
 *.md
 !README.md
+!CLAUDE.md
+!NIGHT_RUN_QUESTIONS.md
+!AUDIT.md
