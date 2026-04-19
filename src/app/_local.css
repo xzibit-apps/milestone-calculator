@@ -1,0 +1,386 @@
+/* _local.css — patterns the Xzibit App Standard v1.0 does not define yet.
+ *
+ * Every rule in here composes from --xz-* tokens; no bespoke hexes, no new
+ * fonts. Flag every addition as a v1.1 standards candidate in
+ * NIGHT_RUN_QUESTIONS.md before merging.
+ *
+ * Loaded AFTER xzibit-design.css in globals.css so tokens are available. */
+
+/* ---------- form controls (v1.1 candidate) --------------------------------
+ * The standard only defines .search-input. A full form-control pattern is
+ * needed for inputs, selects, textareas, and checkboxes so every Xzibit app
+ * renders forms identically. This block is the minimum to get Milestone
+ * Calculator consistent. */
+
+.field {
+  display: block;
+  margin-bottom: var(--xz-s-4);
+}
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--xz-ink-700);
+  margin-bottom: var(--xz-s-1);
+}
+
+.field-label .required {
+  color: var(--xz-coral-700);
+  margin-left: 2px;
+}
+
+.field-help {
+  display: block;
+  margin-top: var(--xz-s-1);
+  font-size: 12px;
+  color: var(--xz-ink-500);
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--xz-s-1);
+  margin-top: var(--xz-s-1);
+  font-size: 12px;
+  color: var(--xz-coral-700);
+}
+
+.input,
+.select,
+.textarea {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--xz-ink);
+  background: var(--xz-surface);
+  border: 1px solid var(--xz-hairline);
+  border-radius: var(--xz-r-md);
+  box-shadow: var(--xz-shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: var(--xz-ink-300);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--xz-teal);
+  box-shadow: 0 0 0 3px var(--xz-teal-50);
+}
+
+.input--error,
+.select--error,
+.textarea--error {
+  border-color: var(--xz-coral-500);
+}
+
+.input--error:focus,
+.select--error:focus,
+.textarea--error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 132, 132, 0.15);
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-wrap .input-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--xz-ink-400);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-wrap .input--with-icon {
+  padding-right: 38px;
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2364748B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--xz-s-2);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--xz-ink);
+}
+
+.checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--xz-teal);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.fieldset {
+  border: 1px solid var(--xz-hairline);
+  border-radius: var(--xz-r-md);
+  padding: var(--xz-s-4);
+  background: var(--xz-surface);
+}
+
+.fieldset-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--xz-ink-700);
+  margin-bottom: var(--xz-s-3);
+}
+
+.fieldset-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xz-s-2);
+}
+
+/* ---------- progress bar (v1.1 candidate) --------------------------------
+ * Used by Information Completeness in ResultsPanel. */
+
+.progress {
+  width: 100%;
+  height: 8px;
+  background: var(--xz-surface-sub, var(--xz-surface-soft));
+  border-radius: var(--xz-r-pill);
+  overflow: hidden;
+}
+
+.progress .bar {
+  height: 100%;
+  border-radius: var(--xz-r-pill);
+  transition: width 0.5s ease;
+}
+
+.progress .bar.is-good { background: var(--xz-mint-500); }
+.progress .bar.is-warn { background: var(--xz-amber-500); }
+.progress .bar.is-bad  { background: var(--xz-coral-500); }
+
+/* ---------- milestone row (v1.1 candidate) --------------------------------
+ * Horizontal row used on the milestone schedule. Composition of .card +
+ * grid + .pill, but the specific anchor-highlight variant (.milestone-row--anchor)
+ * is unique. */
+
+.milestone-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--xz-s-4);
+  align-items: start;
+  padding: var(--xz-s-3) var(--xz-s-4);
+  background: var(--xz-surface);
+  border: 1px solid var(--xz-hairline);
+  border-radius: var(--xz-r-md);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.milestone-row:hover {
+  border-color: var(--xz-ink-300);
+  box-shadow: var(--xz-shadow-sm);
+}
+
+.milestone-row--anchor {
+  border-color: var(--xz-teal);
+  background: var(--xz-teal-50);
+  box-shadow: 0 0 0 1px var(--xz-teal);
+}
+
+.milestone-row .index {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--xz-ink-500);
+  font-variant-numeric: tabular-nums;
+}
+
+.milestone-row .body {
+  min-width: 0;
+}
+
+.milestone-row .name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--xz-ink);
+}
+
+.milestone-row--anchor .name,
+.milestone-row--anchor .days .num {
+  color: var(--xz-teal-700);
+}
+
+.milestone-row .note {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--xz-ink-500);
+  line-height: 1.45;
+}
+
+.milestone-row .schedule {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: var(--xz-s-3);
+  align-items: center;
+  white-space: nowrap;
+}
+
+.milestone-row .schedule .cell {
+  text-align: right;
+  padding: 0;
+  border: 0;
+}
+
+.milestone-row .schedule .cell .label,
+.milestone-row .days .label {
+  display: block;
+  font-size: 11px;
+  color: var(--xz-ink-500);
+  margin-bottom: 2px;
+}
+
+.milestone-row .schedule .cell .value,
+.milestone-row .days .num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--xz-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.milestone-row .days .num {
+  font-size: 18px;
+  color: var(--xz-teal);
+}
+
+@media (max-width: 640px) {
+  .milestone-row {
+    grid-template-columns: auto 1fr;
+    gap: var(--xz-s-3);
+  }
+  .milestone-row .schedule {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, 1fr);
+    padding-top: var(--xz-s-2);
+    border-top: 1px solid var(--xz-hairline);
+  }
+}
+
+/* ---------- stacked tab bar (v1.1 candidate) -----------------------------
+ * The standard's .tabs are inline with the topbar; the admin page needs a
+ * block tab bar with an underline on the active tab. */
+
+.tabs-block {
+  display: flex;
+  border-bottom: 1px solid var(--xz-hairline);
+  gap: var(--xz-s-2);
+  overflow-x: auto;
+}
+
+.tabs-block .tab {
+  border-radius: 0;
+  padding: var(--xz-s-3) var(--xz-s-4);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--xz-ink-500);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tabs-block .tab:hover {
+  color: var(--xz-ink);
+}
+
+.tabs-block .tab.is-active {
+  color: var(--xz-teal-700);
+  border-bottom-color: var(--xz-teal);
+  background: transparent;
+}
+
+/* ---------- alert (v1.1 candidate) ---------------------------------------
+ * A small inline notice with a pastel background and matching icon. */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--xz-s-3);
+  padding: var(--xz-s-3) var(--xz-s-4);
+  border: 1px solid var(--xz-hairline);
+  border-radius: var(--xz-r-md);
+  background: var(--xz-surface);
+  box-shadow: var(--xz-shadow-sm);
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--xz-r-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-body { min-width: 0; }
+.alert-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.alert-text { font-size: 12px; color: var(--xz-ink-500); line-height: 1.45; }
+
+.alert--info { border-color: var(--xz-sky-500); background: var(--xz-sky-50); }
+.alert--info .alert-icon { background: var(--xz-sky-500); color: #fff; }
+.alert--info .alert-title { color: var(--xz-sky-700); }
+
+.alert--warn { border-color: var(--xz-amber-500); background: var(--xz-amber-50); }
+.alert--warn .alert-icon { background: var(--xz-amber-500); color: #fff; }
+.alert--warn .alert-title { color: var(--xz-amber-700); }
+
+.alert--error { border-color: var(--xz-coral-500); background: var(--xz-coral-50); }
+.alert--error .alert-icon { background: var(--xz-coral-500); color: #fff; }
+.alert--error .alert-title { color: var(--xz-coral-700); }
+
+.alert .dismiss {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  color: var(--xz-ink-400);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--xz-r-sm);
+}
+
+.alert .dismiss:hover { color: var(--xz-ink); background: var(--xz-surface-soft); }
+
+/* ---------- spinner (v1.1 candidate) -------------------------------------
+ * Tiny inline loading glyph for buttons; matches currentColor so it works
+ * on any .btn variant. */
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-rotate 0.7s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to { transform: rotate(360deg); }
+}

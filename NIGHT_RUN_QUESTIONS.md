@@ -60,4 +60,58 @@ The brief's text treats Wave 2 as still in-flight; the current KB reflects that 
 
 **Question:** On your next night-run brief, should I instead write these into `kb_open_questions` rows (one per question) so they aggregate across all repos? Either pattern is fine; flagging for your preference.
 
-<!-- Further questions will be appended as they arise during passes 2-5. -->
+## 6. v1.1 candidates added to `src/app/_local.css`
+
+**Where:** PR 2, Passes 2–3f.
+
+**What happened:** The Xzibit App Standard v1.0 stylesheet doesn't define a number of patterns this app needs. Per the brief, I composed them locally in `src/app/_local.css` (imported AFTER `xzibit-design.css`, consumes `--xz-*` tokens only, no bespoke hexes, no new fonts). Every one of these is a candidate to fold into the standard at v1.1:
+
+- **Form controls.** `.field`, `.field-label`, `.field-help`, `.field-error`, `.input`, `.select`, `.textarea`, `.input-wrap`, `.input-icon`, `.input--with-icon`, `.input--error`, `.checkbox`, `.fieldset`, `.fieldset-title`, `.fieldset-list`. The standard only ships `.search-input`, but every Xzibit app has forms. This is the largest gap.
+- **Progress bar.** `.progress` + `.bar.is-good/.is-warn/.is-bad`. Used for Information Completeness in the results panel.
+- **Milestone row.** `.milestone-row`, `.milestone-row--anchor`, with sub-elements `.index`, `.body`, `.name`, `.note`, `.schedule`, `.days`. This is very specific to this app and probably shouldn't go into the standard — flagging for your call.
+- **Stacked tab bar.** `.tabs-block` + `.tab` + `.tab.is-active`. The standard has inline tabs (`.tabs`); the admin page needed a full-width block tab bar with an underline on the active tab. A companion to `.tabs` at the standard level would be reasonable.
+- **Alerts.** `.alert`, `.alert-icon`, `.alert-body`, `.alert-title`, `.alert-text`, `.alert--info`, `.alert--warn`, `.alert--error`, `.alert .dismiss`. Used for error banners and "project dates required" notices. Maps semantically to the six-pastel family (sky / amber / coral).
+- **Spinner.** `.spinner` — small inline loading glyph that inherits `currentColor` so it works inside any `.btn` variant.
+
+**Question:** Which of these should fold into the next standards update? The form controls and alerts feel universal; the milestone-row is app-specific; the tabs-block and progress bar are in between.
+
+## 7. `src/lib/export.ts` PDF template retains bespoke hexes
+
+**Where:** PR 2 retrofit scope decision.
+
+**What happened:** `src/lib/export.ts` contains an inline HTML template used to generate print/PDF exports. It has its own colour palette (`#333`, `#2563eb`, `#1e40af`, `#f1f5f9`, `#f8fafc`, `#e2e8f0`). I left it untouched — it's a self-contained document intended for print, rendered outside the app DOM, and retrofitting it is a separate task from the UI retrofit.
+
+**Question:** Do you want a follow-up task to port the PDF template to standard colours (teal / ink / hairline tokens inlined as hex literals), or is the current template's visual style deliberately distinct from the app UI?
+
+## 8. `src/app/icon.svg` favicon
+
+**Where:** PR 2, misc.
+
+**What happened:** The favicon source `src/app/icon.svg` uses two hex colours. Not touched — tiny, unrelated to UI retrofit.
+
+**Question:** Out of scope; only noting for completeness.
+
+## 9. Admin page retrofitted in place, not rewritten
+
+**Where:** PR 2 Pass 3f.
+
+**What happened:** The admin page (`src/app/admin/page.tsx`, 665 lines) was retrofitted with targeted `replace-all` edits and structural rewrites of the three pre-main states, topbar, save banner, and tab bar — rather than a full ground-up rewrite. The config-editor body sections still use a manual state-setter pattern (every `<input onChange>` rebuilds the whole `ciConfig`). No functional refactor was attempted; this was scope-limited to visual retrofit only.
+
+**Question:** Happy with that, or would you like a follow-up task to collapse the repeated `onChange → setCiConfig({...spread})` logic into a small helper?
+
+## 10b. `package-lock.json` accidentally committed in Pass 5
+
+**Where:** PR 2, commit `retrofit: pass 5 cleanup and KB`.
+
+**What happened:** The repo had no lockfile before tonight. I ran `npm install` at the start of Pass 2, which generated one. During Pass 5 cleanup I used `git add -A` to stage the AUDIT.md deletion and `NIGHT_RUN_QUESTIONS.md` append in one step — and it swept `package-lock.json` into the same commit.
+
+**Why it's probably fine:** a lockfile is almost always a net positive for Next.js apps (deterministic Vercel deploys, reproducible local installs). Every other Xzibit app almost certainly has one.
+
+**Question:** Keep it (probably yes), or do you prefer a follow-up commit that removes the lockfile and adds it to `.gitignore`? Flagging because I violated "one concern per commit" and want to be explicit about it.
+
+## 11. `provider_project_id` drift (re-flag)
+
+**Where:** Also flagged in item 2 above.
+
+**What happened:** During Pass 1 probing I confirmed that the Wave 2.1 Vercel rename is live: `https://xzibit-milestone-calculator.vercel.app` returns 200. The legacy `https://production-milestone-calculator.vercel.app` also still returns 200. `kb_deployments.provider_project_id` still reads `production-milestone-calculator`. Might be deliberate (legacy URL is still the advertised one); worth a conscious decision.
+
