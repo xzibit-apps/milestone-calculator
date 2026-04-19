@@ -99,7 +99,17 @@ The brief's text treats Wave 2 as still in-flight; the current KB reflects that 
 
 **Question:** Happy with that, or would you like a follow-up task to collapse the repeated `onChange → setCiConfig({...spread})` logic into a small helper?
 
-## 10. `provider_project_id` drift (re-flag)
+## 10b. `package-lock.json` accidentally committed in Pass 5
+
+**Where:** PR 2, commit `retrofit: pass 5 cleanup and KB`.
+
+**What happened:** The repo had no lockfile before tonight. I ran `npm install` at the start of Pass 2, which generated one. During Pass 5 cleanup I used `git add -A` to stage the AUDIT.md deletion and `NIGHT_RUN_QUESTIONS.md` append in one step — and it swept `package-lock.json` into the same commit.
+
+**Why it's probably fine:** a lockfile is almost always a net positive for Next.js apps (deterministic Vercel deploys, reproducible local installs). Every other Xzibit app almost certainly has one.
+
+**Question:** Keep it (probably yes), or do you prefer a follow-up commit that removes the lockfile and adds it to `.gitignore`? Flagging because I violated "one concern per commit" and want to be explicit about it.
+
+## 11. `provider_project_id` drift (re-flag)
 
 **Where:** Also flagged in item 2 above.
 
