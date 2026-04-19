@@ -44,4 +44,20 @@ The brief's text treats Wave 2 as still in-flight; the current KB reflects that 
 
 ---
 
+## 4. `kb_decisions` has no `tags` column — brief asked for tags per row
+
+**Where:** Task 1.4 (inserting 4 `kb_decisions` rows).
+
+**What happened:** The brief asked me to "pick sensible tags per row", but `kb_decisions` has no tags column and there is no adjacent join table (checked `kb_*` — only `kb_accounts`, `kb_credential_pointers`, `kb_decisions`, `kb_deployments`, `kb_documents`, `kb_domains`, `kb_naming`, `kb_open_questions`, `kb_repositories`, `kb_systems`). I inserted the rows without tags.
+
+**Question:** Want me to (a) add a `tags text[]` column to `kb_decisions` in a follow-up DDL (Joel's sign-off), (b) create a `kb_decision_tags` join table, or (c) leave as-is and drop the "tags" requirement from future briefs?
+
+## 5. `kb_open_questions` exists — should night-run questions live there instead of a repo file?
+
+**Where:** Meta — general platform observation.
+
+**What happened:** While listing `kb_*` tables I noticed `kb_open_questions` exists. This file (`NIGHT_RUN_QUESTIONS.md`) is where the brief told me to log questions, but the questions are platform-level, not repo-specific, and would probably be better tracked centrally.
+
+**Question:** On your next night-run brief, should I instead write these into `kb_open_questions` rows (one per question) so they aggregate across all repos? Either pattern is fine; flagging for your preference.
+
 <!-- Further questions will be appended as they arise during passes 2-5. -->
