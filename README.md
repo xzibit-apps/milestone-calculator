@@ -1,6 +1,6 @@
-# Production Milestone Calculator
+# Milestone calculator
 
-A Next.js application for calculating production milestones.
+A Next.js application for calculating production milestones. Canonical repo: `xzibit-apps/milestone-calculator` (renamed from `jnebauer/production-milestone-calculator` in Sprint D Wave 1, 2026-04-18).
 
 ## Tech Stack
 
@@ -26,7 +26,7 @@ npm run dev
 ## Project Structure
 
 ```
-production-milestone-calculator/
+milestone-calculator/
 ├── src/
 │   └── app/
 │       ├── layout.tsx
