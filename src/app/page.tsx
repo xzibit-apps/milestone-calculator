@@ -133,39 +133,37 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b1220] text-[#e2e8f0] font-sans relative overflow-x-hidden">
-      {/* Enhanced Animated background with depth - Responsive */}
-      <div className="absolute inset-0 bg-linear-to-br from-[#0b1220] via-[#1e1b4b] to-[#0b1220]"></div>
-      <div className="absolute top-0 right-0 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[600px] lg:h-[600px] bg-[#60a5fa]/15 rounded-full blur-3xl animate-pulse"></div>
-      <div
-        className="absolute bottom-0 left-0 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[600px] lg:h-[600px] bg-[#3b82f6]/15 rounded-full blur-3xl animate-pulse"
-        style={{ animationDelay: '1s' }}
-      ></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[400px] lg:h-[400px] bg-[#8b5cf6]/10 rounded-full blur-3xl"></div>
-
-      {/* Grid pattern overlay for depth - Responsive */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(96,165,250,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(96,165,250,0.03)_1px,transparent_1px)] bg-size-[30px_30px] sm:bg-size-[40px_40px] lg:bg-size-[50px_50px]"></div>
-
-      <div className="relative max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8">
-        <Header />
-
-        {/* Error Message Display */}
-        {errorMessage && (
-          <div className="mb-4 sm:mb-6 bg-red-500/20 border border-red-500/50 rounded-xl p-4 text-red-400 flex items-center gap-3 animate-fade-in">
-            <div className="bg-red-500/20 rounded-lg p-2 shrink-0">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+    <div className="main">
+      <Header />
+      <div className="page">
+        <div className="hero">
+          <div>
+            <div className="step">
+              <span>Step 1</span>
+              <span className="bar"></span>
+              <span className="gray">Schedule</span>
             </div>
-            <p className="text-sm sm:text-base font-medium">{errorMessage}</p>
+            <h1 className="h1">Milestone calculator</h1>
+            <p className="subtle">
+              Generate an accurate project schedule from the truck leave date,
+              working backwards through every milestone.
+            </p>
+          </div>
+        </div>
+
+        {errorMessage && (
+          <div className="alert alert--error animate-fade-in" role="alert" style={{ marginBottom: 'var(--xz-s-5)' }}>
+            <span className="alert-icon" aria-hidden="true">!</span>
+            <div className="alert-body">
+              <div className="alert-title">Calculation error</div>
+              <div className="alert-text">{errorMessage}</div>
+            </div>
             <button
               onClick={() => setErrorMessage(null)}
-              className="ml-auto text-red-400 hover:text-red-300 transition-colors"
+              className="dismiss"
               aria-label="Close error message"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ×
             </button>
           </div>
         )}

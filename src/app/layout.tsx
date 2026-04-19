@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Production Milestone Calculator",
-  description: "Calculate production milestones",
+  title: "Milestone calculator",
+  description: "Calculate project milestone dates for exhibition and AV builds, working backwards from the truck leave date.",
 };
 
 export default function RootLayout({
@@ -18,10 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
-
