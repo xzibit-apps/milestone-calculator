@@ -149,11 +149,18 @@ export default function AdminPage() {
   // Show loading while checking admin role
   if (loading || isAdmin === null) {
     return (
-      <div className="min-h-screen bg-[#0b1220] text-[#e2e8f0] p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#60a5fa] mx-auto"></div>
-            <p className="mt-4 text-[#94a3b8]">Checking permissions...</p>
+      <div className="main">
+        <div className="topbar">
+          <div className="topbar-title">
+            <div className="h3">Admin</div>
+          </div>
+        </div>
+        <div className="page">
+          <div className="card" style={{ textAlign: 'center' }}>
+            <span className="spinner" aria-hidden="true" />
+            <p className="subtle" style={{ marginTop: 'var(--xz-s-3)' }}>
+              Checking permissions…
+            </p>
           </div>
         </div>
       </div>
@@ -163,21 +170,29 @@ export default function AdminPage() {
   // Show access denied if not admin
   if (isAdmin === false) {
     return (
-      <div className="min-h-screen bg-[#0b1220] text-[#e2e8f0] p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <div className="bg-red-500/20 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <AlertCircle className="h-12 w-12 text-red-400" />
+      <div className="main">
+        <div className="topbar">
+          <div className="topbar-title">
+            <div className="h3">Admin</div>
+          </div>
+        </div>
+        <div className="page">
+          <div className="card" style={{ textAlign: 'center' }}>
+            <AlertCircle
+              className="h-10 w-10"
+              aria-hidden="true"
+              style={{ margin: '0 auto var(--xz-s-3)', color: 'var(--xz-coral-700)' }}
+            />
+            <h2 className="h2">Access denied</h2>
+            <p className="subtle" style={{ marginTop: 'var(--xz-s-2)' }}>
+              You do not have permission to access this page. Admin role required.
+            </p>
+            <div style={{ marginTop: 'var(--xz-s-5)' }}>
+              <Link href="/" className="btn btn--primary">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Back to calculator
+              </Link>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-            <p className="text-[#94a3b8] mb-6">You do not have permission to access this page. Admin role required.</p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#60a5fa] hover:bg-[#3b82f6] text-white rounded-xl font-semibold transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Calculator
-            </Link>
           </div>
         </div>
       </div>
@@ -186,11 +201,18 @@ export default function AdminPage() {
 
   if (!ciConfig || !tasks || !labels) {
     return (
-      <div className="min-h-screen bg-[#0b1220] text-[#e2e8f0] p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#60a5fa] mx-auto"></div>
-            <p className="mt-4 text-[#94a3b8]">Loading configuration...</p>
+      <div className="main">
+        <div className="topbar">
+          <div className="topbar-title">
+            <div className="h3">Admin</div>
+          </div>
+        </div>
+        <div className="page">
+          <div className="card" style={{ textAlign: 'center' }}>
+            <span className="spinner" aria-hidden="true" />
+            <p className="subtle" style={{ marginTop: 'var(--xz-s-3)' }}>
+              Loading configuration…
+            </p>
           </div>
         </div>
       </div>
@@ -198,96 +220,103 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b1220] text-[#e2e8f0] p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-[#203049]/60 rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center w-10 h-10 bg-[#0b2545]/50 hover:bg-[#0b2545] border border-[#203049] hover:border-[#60a5fa]/50 rounded-xl text-[#94a3b8] hover:text-[#60a5fa] transition-all duration-300 cursor-pointer group mr-2"
-                title="Back to Calculator"
-              >
-                <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-              </Link>
-              <div className="bg-[#60a5fa]/20 rounded-lg p-2 border border-[#60a5fa]/30">
-                <Settings className="h-6 w-6 text-[#60a5fa]" />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-sm text-[#94a3b8] mt-1">
-                  Configure CI weights, thresholds, tasks, and labels
-                </p>
-              </div>
+    <div className="main">
+      <div className="topbar">
+        <div className="topbar-title">
+          <Link href="/" className="btn btn--ghost" title="Back to calculator">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </Link>
+          <div className="h3">Admin</div>
+        </div>
+        <div className="topbar-actions">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="btn btn--primary"
+          >
+            {isSaving ? (
+              <>
+                <span className="spinner" aria-hidden="true" />
+                <span>Saving…</span>
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" aria-hidden="true" />
+                <span>Save changes</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="page">
+        <div className="hero">
+          <div>
+            <div className="step">
+              <span>Settings</span>
+              <span className="bar"></span>
+              <span className="gray">Configuration</span>
             </div>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-[#60a5fa] hover:bg-[#3b82f6] text-white rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
+            <h1 className="h1">Configure calculator</h1>
+            <p className="subtle">
+              Tune CI weights, bucket thresholds, task definitions, and label text.
+            </p>
           </div>
         </div>
 
-        {/* Save Message */}
         {saveMessage && (
           <div
-            className={`mb-6 p-4 rounded-xl border transition-all duration-300 ${
-              isMessageFading
-                ? 'opacity-0 translate-y-[-10px]'
-                : 'opacity-100 translate-y-0'
-            } ${
-              saveMessage.type === 'success'
-                ? 'bg-green-500/20 border-green-500/50 text-green-400'
-                : 'bg-red-500/20 border-red-500/50 text-red-400'
+            className={`alert ${saveMessage.type === 'success' ? 'alert--info' : 'alert--error'} ${
+              isMessageFading ? 'animate-fade-in' : ''
             }`}
+            style={{ marginBottom: 'var(--xz-s-5)', opacity: isMessageFading ? 0 : 1, transition: 'opacity 0.3s ease' }}
+            role="status"
           >
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <p>{saveMessage.text}</p>
+            <span className="alert-icon" aria-hidden="true">
+              <AlertCircle className="h-4 w-4" />
+            </span>
+            <div className="alert-body">
+              <div className="alert-title">
+                {saveMessage.type === 'success' ? 'Saved' : 'Save failed'}
+              </div>
+              <div className="alert-text">{saveMessage.text}</div>
             </div>
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-[#203049]/60 rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden">
-          <div className="flex border-b border-[#203049]">
+        <div className="card">
+          <div className="tabs-block" role="tablist">
             {[
-              { id: 'ci' as const, label: 'CI Weights' },
-              { id: 'thresholds' as const, label: 'CI Thresholds' },
+              { id: 'ci' as const, label: 'CI weights' },
+              { id: 'thresholds' as const, label: 'CI thresholds' },
               { id: 'tasks' as const, label: 'Tasks' },
               { id: 'labels' as const, label: 'Labels' },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 px-4 py-3 text-sm font-semibold transition-colors cursor-pointer ${
-                  activeTab === tab.id
-                    ? 'bg-[#60a5fa]/20 text-[#60a5fa] border-b-2 border-[#60a5fa]'
-                    : 'text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#0b2545]/50'
-                }`}
+                className={`tab ${activeTab === tab.id ? 'is-active' : ''}`.trim()}
+                role="tab"
+                aria-selected={activeTab === tab.id}
               >
                 {tab.label}
               </button>
             ))}
           </div>
 
-          <div className="p-6">
+          <div style={{ paddingTop: 'var(--xz-s-5)' }}>
             {/* CI Weights Tab */}
             {activeTab === 'ci' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-white mb-4">Complexity Index Weights</h2>
+                <h2 className="h2">Complexity index weights</h2>
                 
                 {/* Build Type */}
                 <div>
-                  <h3 className="text-sm font-semibold text-[#94a3b8] mb-3 uppercase">Build Type</h3>
+                  <h3 className="h3">Build type</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(ciConfig.weights.buildType).map(([key, value]) => (
-                      <div key={key} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                        <label className="block text-xs text-[#94a3b8] mb-2 capitalize">{key}</label>
+                      <div key={key} className="field">
+                        <label className="field-label capitalize">{key}</label>
                         <input
                           type="number"
                           value={value}
@@ -301,7 +330,7 @@ export default function AdminPage() {
                               },
                             });
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                     ))}
@@ -310,11 +339,11 @@ export default function AdminPage() {
 
                 {/* Stand Size */}
                 <div>
-                  <h3 className="text-sm font-semibold text-[#94a3b8] mb-3 uppercase">Stand Size</h3>
+                  <h3 className="h3">Stand size</h3>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(ciConfig.weights.standSize).map(([key, value]) => (
-                      <div key={key} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                        <label className="block text-xs text-[#94a3b8] mb-2 capitalize">{key}</label>
+                      <div key={key} className="field">
+                        <label className="field-label capitalize">{key}</label>
                         <input
                           type="number"
                           value={value}
@@ -328,7 +357,7 @@ export default function AdminPage() {
                               },
                             });
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                     ))}
@@ -337,11 +366,11 @@ export default function AdminPage() {
 
                 {/* AV Complexity */}
                 <div>
-                  <h3 className="text-sm font-semibold text-[#94a3b8] mb-3 uppercase">AV Complexity</h3>
+                  <h3 className="h3">AV complexity</h3>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(ciConfig.weights.avComplexity).map(([key, value]) => (
-                      <div key={key} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                        <label className="block text-xs text-[#94a3b8] mb-2 capitalize">{key}</label>
+                      <div key={key} className="field">
+                        <label className="field-label capitalize">{key}</label>
                         <input
                           type="number"
                           value={value}
@@ -355,7 +384,7 @@ export default function AdminPage() {
                               },
                             });
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                     ))}
@@ -364,11 +393,11 @@ export default function AdminPage() {
 
                 {/* Fabrication Intensity */}
                 <div>
-                  <h3 className="text-sm font-semibold text-[#94a3b8] mb-3 uppercase">Fabrication Intensity</h3>
+                  <h3 className="h3">Fabrication intensity</h3>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(ciConfig.weights.fabricationIntensity).map(([key, value]) => (
-                      <div key={key} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                        <label className="block text-xs text-[#94a3b8] mb-2 capitalize">{key.replace(/_/g, ' ')}</label>
+                      <div key={key} className="field">
+                        <label className="field-label capitalize">{key.replace(/_/g, ' ')}</label>
                         <input
                           type="number"
                           value={value}
@@ -382,7 +411,7 @@ export default function AdminPage() {
                               },
                             });
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                     ))}
@@ -391,11 +420,11 @@ export default function AdminPage() {
 
                 {/* Brief Clarity */}
                 <div>
-                  <h3 className="text-sm font-semibold text-[#94a3b8] mb-3 uppercase">Brief Clarity</h3>
+                  <h3 className="h3">Brief clarity</h3>
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(ciConfig.weights.briefClarity).map(([key, value]) => (
-                      <div key={key} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                        <label className="block text-xs text-[#94a3b8] mb-2 capitalize">{key.replace(/_/g, ' ')}</label>
+                      <div key={key} className="field">
+                        <label className="field-label capitalize">{key.replace(/_/g, ' ')}</label>
                         <input
                           type="number"
                           value={value}
@@ -409,7 +438,7 @@ export default function AdminPage() {
                               },
                             });
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                     ))}
@@ -418,8 +447,8 @@ export default function AdminPage() {
 
                 {/* Engineering Required & Long Lead Items */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                    <label className="block text-xs text-[#94a3b8] mb-2">Engineering Required</label>
+                  <div className="field">
+                    <label className="field-label">Engineering required</label>
                     <input
                       type="number"
                       value={ciConfig.weights.engineeringRequired}
@@ -433,11 +462,11 @@ export default function AdminPage() {
                           },
                         });
                       }}
-                      className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                      className="input"
                     />
                   </div>
-                  <div className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                    <label className="block text-xs text-[#94a3b8] mb-2">Long Lead Items</label>
+                  <div className="field">
+                    <label className="field-label">Long-lead items</label>
                     <input
                       type="number"
                       value={ciConfig.weights.longLeadItems}
@@ -451,7 +480,7 @@ export default function AdminPage() {
                           },
                         });
                       }}
-                      className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                      className="input"
                     />
                   </div>
                 </div>
@@ -461,10 +490,10 @@ export default function AdminPage() {
             {/* CI Thresholds Tab */}
             {activeTab === 'thresholds' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-white mb-4">Complexity Index Thresholds</h2>
+                <h2 className="h2">Complexity index thresholds</h2>
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-[#0b2545] rounded-lg p-6 border border-[#203049]">
-                    <label className="block text-sm font-semibold text-[#94a3b8] mb-3">
+                  <div className="field">
+                    <label className="field-label">
                       Low Max (CI ≤ this value = Low bucket)
                     </label>
                     <input
@@ -480,11 +509,11 @@ export default function AdminPage() {
                           },
                         });
                       }}
-                      className="w-full px-4 py-3 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                      className="input"
                     />
                   </div>
-                  <div className="bg-[#0b2545] rounded-lg p-6 border border-[#203049]">
-                    <label className="block text-sm font-semibold text-[#94a3b8] mb-3">
+                  <div className="field">
+                    <label className="field-label">
                       Medium Max (CI ≤ this value = Medium bucket)
                     </label>
                     <input
@@ -500,7 +529,7 @@ export default function AdminPage() {
                           },
                         });
                       }}
-                      className="w-full px-4 py-3 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                      className="input"
                     />
                   </div>
                 </div>
@@ -510,13 +539,13 @@ export default function AdminPage() {
             {/* Tasks Tab */}
             {activeTab === 'tasks' && (
               <div className="space-y-4">
-                <h2 className="text-xl font-bold text-white mb-4">Task Configuration</h2>
+                <h2 className="h2">Task configuration</h2>
                 <div className="space-y-4 max-h-[600px] overflow-y-auto">
                   {tasks.map((task, index) => (
-                    <div key={task.id} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
+                    <div key={task.id} className="field">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
-                          <label className="block text-xs text-[#94a3b8] mb-2">Task Name</label>
+                          <label className="field-label">Task Name</label>
                           <input
                             type="text"
                             value={task.name}
@@ -525,11 +554,11 @@ export default function AdminPage() {
                               newTasks[index] = { ...task, name: e.target.value };
                               setTasks(newTasks);
                             }}
-                            className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                            className="input"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-[#94a3b8] mb-2">Duration Low</label>
+                          <label className="field-label">Duration Low</label>
                           <input
                             type="number"
                             min="0"
@@ -539,11 +568,11 @@ export default function AdminPage() {
                               newTasks[index] = { ...task, durationLow: parseInt(e.target.value) || 0 };
                               setTasks(newTasks);
                             }}
-                            className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                            className="input"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-[#94a3b8] mb-2">Duration Medium</label>
+                          <label className="field-label">Duration Medium</label>
                           <input
                             type="number"
                             min="0"
@@ -553,11 +582,11 @@ export default function AdminPage() {
                               newTasks[index] = { ...task, durationMedium: parseInt(e.target.value) || 0 };
                               setTasks(newTasks);
                             }}
-                            className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                            className="input"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-[#94a3b8] mb-2">Duration High</label>
+                          <label className="field-label">Duration High</label>
                           <input
                             type="number"
                             min="0"
@@ -567,12 +596,12 @@ export default function AdminPage() {
                               newTasks[index] = { ...task, durationHigh: parseInt(e.target.value) || 0 };
                               setTasks(newTasks);
                             }}
-                            className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                            className="input"
                           />
                         </div>
                       </div>
                       <div className="mb-4">
-                        <label className="block text-xs text-[#94a3b8] mb-2">Success Factor</label>
+                        <label className="field-label">Success Factor</label>
                         <textarea
                           value={task.successFactor}
                           onChange={(e) => {
@@ -581,11 +610,11 @@ export default function AdminPage() {
                             setTasks(newTasks);
                           }}
                           rows={2}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-[#94a3b8] mb-2">Scope Conditions (comma-separated)</label>
+                        <label className="field-label">Scope Conditions (comma-separated)</label>
                         <input
                           type="text"
                           value={task.scopeConditions.join(', ')}
@@ -597,7 +626,7 @@ export default function AdminPage() {
                             };
                             setTasks(newTasks);
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                           placeholder="all, custom, engineered"
                         />
                       </div>
@@ -610,14 +639,14 @@ export default function AdminPage() {
             {/* Labels Tab */}
             {activeTab === 'labels' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-white mb-4">UI Labels</h2>
+                <h2 className="h2">UI labels</h2>
                 
                 <div>
-                  <h3 className="text-sm font-semibold text-[#94a3b8] mb-3 uppercase">Information Gates</h3>
+                  <h3 className="h3">Information gates</h3>
                   <div className="space-y-3">
                     {Object.entries(labels.infoGates).map(([key, value]) => (
-                      <div key={key} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                        <label className="block text-xs text-[#94a3b8] mb-2 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label>
+                      <div key={key} className="field">
+                        <label className="field-label capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label>
                         <input
                           type="text"
                           value={value}
@@ -627,7 +656,7 @@ export default function AdminPage() {
                               infoGates: { ...labels.infoGates, [key]: e.target.value },
                             });
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                     ))}
@@ -635,11 +664,11 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-[#94a3b8] mb-3 uppercase">Optional Flags</h3>
+                  <h3 className="h3">Optional flags</h3>
                   <div className="space-y-3">
                     {Object.entries(labels.optionalFlags).map(([key, value]) => (
-                      <div key={key} className="bg-[#0b2545] rounded-lg p-4 border border-[#203049]">
-                        <label className="block text-xs text-[#94a3b8] mb-2 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label>
+                      <div key={key} className="field">
+                        <label className="field-label capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label>
                         <input
                           type="text"
                           value={value}
@@ -649,7 +678,7 @@ export default function AdminPage() {
                               optionalFlags: { ...labels.optionalFlags, [key]: e.target.value },
                             });
                           }}
-                          className="w-full px-3 py-2 bg-[#0f172a] border border-[#203049] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+                          className="input"
                         />
                       </div>
                     ))}
