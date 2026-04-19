@@ -1,12 +1,5 @@
 // components/home/ResultsPanel.tsx
-import {
-  TrendingUp,
-  Info,
-  Calendar,
-  AlertTriangle,
-  FileText,
-  Clock,
-} from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { formatDate, countWorkingDays } from '@/lib/calculator';
 import { MESSAGES } from '@/lib/constants';
 import type { CalculationResult, ProjectInput } from '@/lib/types';
@@ -17,189 +10,148 @@ interface ResultsPanelProps {
   input: ProjectInput;
 }
 
+type StatusTone = 'mint' | 'sky' | 'amber' | 'coral' | 'lilac';
+
+const bucketPalette: Record<string, StatusTone> = {
+  low: 'mint',
+  medium: 'sky',
+  high: 'coral',
+  // Legacy buckets (kept for backward compatibility only)
+  fast_track: 'mint',
+  standard: 'sky',
+  custom: 'amber',
+  high_risk: 'coral',
+};
+
+function getBucketTone(bucket: string): StatusTone {
+  return bucketPalette[bucket] ?? 'lilac';
+}
+
+function getBucketLabel(bucket: string): string {
+  switch (bucket) {
+    case 'low':
+      return MESSAGES.BUCKET_LOW;
+    case 'medium':
+      return MESSAGES.BUCKET_MEDIUM;
+    case 'high':
+      return MESSAGES.BUCKET_HIGH;
+    case 'fast_track':
+      return MESSAGES.BUCKET_FAST_TRACK;
+    case 'standard':
+      return MESSAGES.BUCKET_STANDARD;
+    case 'custom':
+      return MESSAGES.BUCKET_CUSTOM;
+    default:
+      return bucket;
+  }
+}
+
+function getCompletenessTone(fraction: number): 'is-good' | 'is-warn' | 'is-bad' {
+  if (fraction === 1) return 'is-good';
+  if (fraction >= 0.5) return 'is-warn';
+  return 'is-bad';
+}
+
 export default function ResultsPanel({ result, input }: ResultsPanelProps) {
-  // Helper functions
-  const getBucketColor = (bucket: string) => {
-    switch (bucket) {
-      case 'low':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'medium':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'high':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      // Legacy buckets (kept for backward compatibility only)
-      case 'fast_track':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'standard':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'custom':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-    }
-  };
-
-  const getBucketLabel = (bucket: string) => {
-    switch (bucket) {
-      case 'low':
-        return MESSAGES.BUCKET_LOW;
-      case 'medium':
-        return MESSAGES.BUCKET_MEDIUM;
-      case 'high':
-        return MESSAGES.BUCKET_HIGH;
-      // Legacy buckets (kept for backward compatibility only)
-      case 'fast_track':
-        return MESSAGES.BUCKET_FAST_TRACK;
-      case 'standard':
-        return MESSAGES.BUCKET_STANDARD;
-      case 'custom':
-        return MESSAGES.BUCKET_CUSTOM;
-      default:
-        return bucket;
-    }
-  };
-
   const bucket = result?.bucket || result?.leadBucket || 'unknown';
+  const bucketTone = getBucketTone(bucket);
 
   return (
-    <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-[#203049]/60 rounded-2xl sm:rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_48px_rgba(96,165,250,0.15)] transition-all duration-700 relative overflow-hidden group">
-      <div className="absolute inset-0 bg-linear-to-br from-[#60a5fa]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-      <div className="p-4 sm:p-6 lg:p-8 border-b border-[#203049]/50 bg-linear-to-r from-[#0f172a]/95 to-[#1e293b]/95 backdrop-blur-sm relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="bg-[#60a5fa]/20 rounded-lg p-1.5 sm:p-2 border border-[#60a5fa]/30">
-              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-[#60a5fa]" />
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white">
-              {MESSAGES.CALCULATED_SPECS}
-            </h2>
-          </div>
-          {result && (
-            <div className="shrink-0">
-              <ExportButtons input={input} result={result} />
-            </div>
-          )}
+    <div className="card">
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 'var(--xz-s-4)',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div className="card-eyebrow">Results</div>
+          <div className="card-title">{MESSAGES.CALCULATED_SPECS}</div>
         </div>
+        {result && <ExportButtons input={input} result={result} />}
       </div>
 
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div style={{ marginTop: 'var(--xz-s-5)' }}>
         {!result ? (
-          <div className="text-center py-12 sm:py-16 lg:py-20 text-[#94a3b8]">
-            <div className="bg-[#0b2545]/50 rounded-full p-4 sm:p-6 w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 flex items-center justify-center">
-              <Info className="h-10 w-10 sm:h-12 sm:w-12 text-[#60a5fa]/50" />
-            </div>
-            <p className="text-sm sm:text-base font-medium">
-              {MESSAGES.NO_RESULTS}
-            </p>
+          <div className="empty">
+            <span className="plus" aria-hidden="true">+</span>
+            {MESSAGES.NO_RESULTS}
           </div>
         ) : (
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-            {/* Complexity Index & Complexity Bucket */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="bg-linear-to-br from-[#0b2545] to-[#0f172a] backdrop-blur-md border border-[#203049] rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 hover:border-[#60a5fa]/60 hover:shadow-[0_8px_24px_rgba(96,165,250,0.25)] hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-[#60a5fa]/10 rounded-full blur-2xl"></div>
-                <div className="relative z-10">
-                  <div className="text-[10px] sm:text-xs text-[#94a3b8] uppercase tracking-wider mb-2 sm:mb-3 font-semibold">
-                    {MESSAGES.COMPLEXITY_INDEX}
-                  </div>
-                  <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#60a5fa] group-hover:scale-110 transition-transform inline-block drop-shadow-[0_0_15px_rgba(96,165,250,0.4)]">
-                    {result.ci}
-                  </div>
-                </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--xz-s-6)' }}>
+            {/* Complexity index + bucket as a two-column stat row */}
+            <div className="stat-row">
+              <div className="stat sky">
+                <div className="stripe" />
+                <div className="label">{MESSAGES.COMPLEXITY_INDEX}</div>
+                <div className="value">{result.ci}</div>
               </div>
-              <div
-                className={`border rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 backdrop-blur-md hover:shadow-[0_8px_24px_rgba(96,165,250,0.25)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden ${getBucketColor(
-                  bucket
-                )}`}
-              >
-                <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="relative z-10">
-                  <div className="text-[10px] sm:text-xs text-[#94a3b8] uppercase tracking-wider mb-2 sm:mb-3 font-semibold">
-                    {MESSAGES.COMPLEXITY_BUCKET}
-                  </div>
-                  <div className="text-base sm:text-lg lg:text-xl font-extrabold text-white wrap-break-word">
+              <div className={`stat ${bucketTone}`}>
+                <div className="stripe" />
+                <div className="label">{MESSAGES.COMPLEXITY_BUCKET}</div>
+                <div className="value" style={{ fontSize: '20px' }}>
+                  <span className={`pill pill--${bucketTone}`}>
+                    <span className="dot" aria-hidden="true" />
                     {getBucketLabel(bucket)}
-                  </div>
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Tasks Schedule */}
+            {/* Milestone schedule */}
             {result.tasks && result.tasks.length > 0 ? (
               <div>
-                <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#60a5fa]" />
-                  <h3 className="text-xs sm:text-sm text-[#e2e8f0] font-bold uppercase tracking-wider">
-                    {MESSAGES.MILESTONES}
-                  </h3>
-                </div>
-                <div className="space-y-2.5 sm:space-y-2.5 max-h-[700px] overflow-y-auto">
+                <h3 className="h3" style={{ marginBottom: 'var(--xz-s-3)' }}>
+                  {MESSAGES.MILESTONES}
+                </h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 'var(--xz-s-2)',
+                    maxHeight: 700,
+                    overflowY: 'auto',
+                  }}
+                >
                   {result.tasks.map((task, index) => {
                     const isTruckLeave = task.id === 'truck_leave_date';
-                    // Use duration from task, or calculate from dates if available
-                    const days = task.duration ?? (task.startDate && task.endDate ? countWorkingDays(task.startDate, task.endDate) : 0);
+                    const days =
+                      task.duration ??
+                      (task.startDate && task.endDate
+                        ? countWorkingDays(task.startDate, task.endDate)
+                        : 0);
                     const hasDates = task.startDate !== null && task.endDate !== null;
                     return (
                       <div
                         key={task.id}
-                        className={`flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 bg-linear-to-r from-[#0b2545] to-[#0f172a] backdrop-blur-md border rounded-lg sm:rounded-xl px-3 py-2.5 sm:px-5 sm:py-3 hover:border-[#60a5fa]/50 hover:shadow-[0_4px_12px_rgba(96,165,250,0.15)] transition-all duration-300 group ${
-                          isTruckLeave
-                            ? 'bg-linear-to-r from-[#60a5fa]/20 via-[#3b82f6]/15 to-[#2563eb]/10 border-2 border-[#60a5fa] shadow-[0_4px_20px_rgba(96,165,250,0.3)]'
-                            : 'border-[#203049]'
-                        }`}
+                        className={`milestone-row ${isTruckLeave ? 'milestone-row--anchor' : ''}`.trim()}
                       >
-                        <div className="flex-1 min-w-0 pr-2 sm:pr-4">
-                          <div className="flex items-start gap-2 sm:gap-3">
-                            <span className="text-xs sm:text-sm font-medium text-[#94a3b8] shrink-0 mt-0.5">
-                              {String(index + 1).padStart(2, '0')}.
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <span
-                                className={`text-xs sm:text-sm font-semibold block mb-1 ${
-                                  isTruckLeave
-                                    ? 'text-[#60a5fa]'
-                                    : 'text-[#cbd5e1] group-hover:text-[#60a5fa]'
-                                } transition-colors`}
-                              >
-                                {task.name}
-                              </span>
-                              {task.successFactor && (
-                                <p className="text-[10px] sm:text-xs text-[#94a3b8] mt-1 leading-relaxed pr-0 sm:pr-2">
-                                  {task.successFactor}
-                                </p>
-                              )}
-                            </div>
-                          </div>
+                        <div className="index">{String(index + 1).padStart(2, '0')}.</div>
+                        <div className="body">
+                          <div className="name">{task.name}</div>
+                          {task.successFactor && (
+                            <p className="note">{task.successFactor}</p>
+                          )}
                         </div>
-                        <div className="flex items-center gap-3 sm:gap-4 shrink-0 mt-2 sm:mt-0">
-                          <div className="text-right">
-                            <div className="text-[10px] text-[#94a3b8] uppercase tracking-wide mb-0.5">
-                              START DATE
-                            </div>
-                            <div className="text-xs sm:text-sm font-bold text-white whitespace-nowrap">
+                        <div className="schedule">
+                          <div className="cell">
+                            <span className="label">Start</span>
+                            <span className="value">
                               {hasDates ? formatDate(task.startDate) : 'TBC'}
-                            </div>
+                            </span>
                           </div>
-                          <div className="text-right">
-                            <div className="text-[10px] text-[#94a3b8] uppercase tracking-wide mb-0.5">
-                              END DATE
-                            </div>
-                            <div
-                              className={`text-xs sm:text-sm font-bold whitespace-nowrap ${
-                                isTruckLeave ? 'text-[#60a5fa]' : 'text-white'
-                              }`}
-                            >
+                          <div className="cell">
+                            <span className="label">End</span>
+                            <span className="value">
                               {hasDates ? formatDate(task.endDate) : 'TBC'}
-                            </div>
+                            </span>
                           </div>
-                          <div className="text-right">
-                            <div className="text-[10px] text-[#94a3b8] uppercase tracking-wide mb-0.5">
-                              DAYS
-                            </div>
-                            <div className="text-base sm:text-lg font-bold text-[#60a5fa] whitespace-nowrap">
-                              {days}
-                            </div>
+                          <div className="days">
+                            <span className="label">Days</span>
+                            <span className="num">{days}</span>
                           </div>
                         </div>
                       </div>
@@ -208,43 +160,39 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                 </div>
               </div>
             ) : (
-              <div className="bg-linear-to-br from-[#0b2545] to-[#0f172a] backdrop-blur-md border border-[#203049] rounded-lg sm:rounded-xl p-4 sm:p-5">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-yellow-400/20 rounded-lg p-1.5 sm:p-2 shrink-0">
-                    <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
+              <div className="alert alert--warn" role="status">
+                <span className="alert-icon" aria-hidden="true">
+                  <AlertTriangle className="h-4 w-4" />
+                </span>
+                <div className="alert-body">
+                  <div className="alert-title">
+                    {MESSAGES.TRUCK_LEAVE_DATE_REQUIRED_TITLE}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-bold text-yellow-400 mb-1">
-                      {MESSAGES.TRUCK_LEAVE_DATE_REQUIRED_TITLE}
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-[#94a3b8] leading-relaxed">
-                      Enter a Truck Leave Date to generate milestone dates.
-                    </p>
+                  <div className="alert-text">
+                    Enter a truck leave date to generate milestone dates.
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Show helper message if tasks exist but no dates */}
-            {result.tasks && result.tasks.length > 0 && result.tasks[0].startDate === null && (
-              <div className="bg-linear-to-br from-[#0b2545] to-[#0f172a] backdrop-blur-md border border-[#203049] rounded-lg sm:rounded-xl p-4 sm:p-5">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-400/20 rounded-lg p-1.5 sm:p-2 shrink-0">
-                    <Info className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-bold text-blue-400 mb-1">
-                      Durations Calculated
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-[#94a3b8] leading-relaxed">
-                      Enter a Truck Leave Date to generate milestone dates.
-                    </p>
+            {/* Durations-only informational note */}
+            {result.tasks &&
+              result.tasks.length > 0 &&
+              result.tasks[0].startDate === null && (
+                <div className="alert alert--info" role="status">
+                  <span className="alert-icon" aria-hidden="true">
+                    <Info className="h-4 w-4" />
+                  </span>
+                  <div className="alert-body">
+                    <div className="alert-title">Durations calculated</div>
+                    <div className="alert-text">
+                      Enter a truck leave date to generate milestone dates.
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Project Timeline */}
+            {/* Project timeline summary */}
             {result.tasks &&
               result.tasks.length > 0 &&
               result.tasks[0].startDate !== null &&
@@ -254,18 +202,13 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                 const lastTask = result.tasks[result.tasks.length - 1];
                 const startDate = firstTask.startDate;
                 const endDate = lastTask.endDate;
-                
-                // TypeScript guard: we already checked for null above, but need to assert here
                 if (!startDate || !endDate) return null;
-                
+
                 const totalWorkingDays = countWorkingDays(startDate, endDate);
 
-                // Format date for display (e.g., "17 Jan 1975")
                 const formatDateDisplay = (date: Date) => {
                   const day = date.getDate();
-                  const month = date.toLocaleDateString('en-US', {
-                    month: 'short',
-                  });
+                  const month = date.toLocaleDateString('en-US', { month: 'short' });
                   const year = date.getFullYear();
                   return { day, month, year };
                 };
@@ -274,46 +217,32 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                 const endFormatted = formatDateDisplay(endDate);
 
                 return (
-                  <div className="bg-[#0f172a]/90 border border-[#203049] rounded-xl p-4 sm:p-5">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Clock className="h-4 w-4 text-[#60a5fa]" />
-                      <h3 className="text-xs sm:text-sm text-[#e2e8f0] font-bold uppercase tracking-wider">
-                        Project Timeline
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {/* Start Date */}
-                      <div className="bg-[#0b1a2e] rounded-lg p-4 border border-[#203049]">
-                        <div className="text-[10px] text-[#94a3b8] uppercase mb-2">
-                          Start Date
-                        </div>
-                        <div className="text-base font-bold text-white">
+                  <div>
+                    <h3 className="h3" style={{ marginBottom: 'var(--xz-s-3)' }}>
+                      Project timeline
+                    </h3>
+                    <div className="stat-row">
+                      <div className="stat sky">
+                        <div className="stripe" />
+                        <div className="label">Start date</div>
+                        <div className="value" style={{ fontSize: '18px' }}>
                           {startFormatted.day} {startFormatted.month}{' '}
                           {startFormatted.year}
                         </div>
                       </div>
-
-                      {/* End Date */}
-                      <div className="bg-[#0b1a2e] rounded-lg p-4 border border-[#203049]">
-                        <div className="text-[10px] text-[#94a3b8] uppercase mb-2">
-                          End Date
-                        </div>
-                        <div className="text-base font-bold text-[#60a5fa]">
+                      <div className="stat mint">
+                        <div className="stripe" />
+                        <div className="label">End date</div>
+                        <div className="value" style={{ fontSize: '18px' }}>
                           {endFormatted.day} {endFormatted.month}{' '}
                           {endFormatted.year}
                         </div>
                       </div>
-
-                      {/* Duration */}
-                      <div className="bg-[#60a5fa]/10 rounded-lg p-4 border border-[#60a5fa]/30">
-                        <div className="text-[10px] text-[#94a3b8] uppercase mb-2">
-                          Duration
-                        </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-[#60a5fa]">
-                          {totalWorkingDays}
-                        </div>
-                        <div className="text-xs text-[#94a3b8]">
+                      <div className="stat lilac">
+                        <div className="stripe" />
+                        <div className="label">Duration</div>
+                        <div className="value">{totalWorkingDays}</div>
+                        <div className="delta" style={{ marginTop: 4 }}>
                           working days
                         </div>
                       </div>
@@ -322,33 +251,28 @@ export default function ResultsPanel({ result, input }: ResultsPanelProps) {
                 );
               })()}
 
-            {/* Info Completeness */}
-            <div className="bg-linear-to-br from-[#0b2545] to-[#0f172a] backdrop-blur-md border border-[#203049] rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#60a5fa]" />
-                  <span className="text-[10px] sm:text-xs text-[#94a3b8] uppercase tracking-wider font-semibold">
-                    {MESSAGES.INFORMATION_COMPLETENESS}
-                  </span>
-                </div>
-                <span className="text-2xl sm:text-3xl font-extrabold text-[#60a5fa]">
-                  {Math.round(result.infoCompleteness * 100)}%
-                </span>
+            {/* Information completeness */}
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 'var(--xz-s-2)',
+                }}
+              >
+                <span className="meta">{MESSAGES.INFORMATION_COMPLETENESS}</span>
+                <span className="h3">{Math.round(result.infoCompleteness * 100)}%</span>
               </div>
-              <div className="w-full bg-[#031022] rounded-full h-2 sm:h-2.5 mb-2 overflow-hidden">
+              <div className="progress">
                 <div
-                  className={`h-2 sm:h-2.5 rounded-full transition-all duration-500 ${
-                    result.infoCompleteness === 1
-                      ? 'bg-green-500'
-                      : result.infoCompleteness >= 0.5
-                      ? 'bg-yellow-500'
-                      : 'bg-red-500'
-                  }`}
+                  className={`bar ${getCompletenessTone(result.infoCompleteness)}`}
                   style={{ width: `${result.infoCompleteness * 100}%` }}
                 />
               </div>
-              <p className="text-[10px] sm:text-xs text-[#64748b] text-center font-medium">
-                Information completeness: {Object.values(input.infoGates).filter(Boolean).length} / {Object.keys(input.infoGates).length} gates complete ({Math.round(result.infoCompleteness * 100)}%)
+              <p className="meta" style={{ marginTop: 'var(--xz-s-2)' }}>
+                {Object.values(input.infoGates).filter(Boolean).length} /{' '}
+                {Object.keys(input.infoGates).length} gates complete
               </p>
             </div>
           </div>
