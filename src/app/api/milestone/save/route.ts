@@ -14,6 +14,7 @@ import {
   updateProjectTruckLoadDate,
   type InsertMilestoneCalculation,
 } from '@/lib/milestone-db';
+import { verifyAuth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,11 @@ function toIsoDate(date: Date | null): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await verifyAuth(request);
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

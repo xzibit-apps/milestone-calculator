@@ -44,3 +44,6 @@ next-env.d.ts
 !CLAUDE.md
 !NIGHT_RUN_QUESTIONS.md
 !AUDIT.md
+# docs/ tree is tracked in full
+!docs/
+!docs/**/*.md
